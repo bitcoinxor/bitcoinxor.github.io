@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>bitcoinxor — tools for the day the hash changes</title>
+<meta name="description" content="Independent open-source tooling for the BIP-110 proof-of-work-change hard fork of Bitcoin: miner, pool, and explorer.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%233E6FB0' stroke-width='3'/%3E%3Cpath d='M16 6v20M6 16h20' stroke='%233E6FB0' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans+Condensed:wght@600&family=IBM+Plex+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F4F6F5; --grid:#E3E8E7; --ink:#1E2833; --muted:#5A6672;
+  --accent:#3E6FB0; --accent-soft:#DCE6F2;
+  --f-version:#8A93A0; --f-prev:#3E6FB0; --f-merkle:#7C5CB8;
+  --f-time:#3E8F6C; --f-bits:#2E8FA3; --f-nonce:#D97A1F;
+  color-scheme: light;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:'IBM Plex Sans',sans-serif; color:var(--ink); background:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),
+                   linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:28px 28px; line-height:1.55;
+}
+.sheet{max-width:880px;margin:0 auto;padding:0 24px}
+a{color:var(--ink);text-decoration-color:var(--accent);text-decoration-thickness:2px;text-underline-offset:3px}
+a:hover{color:var(--accent)}
+a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mono{font-family:'IBM Plex Mono',monospace}
+
+header{padding:56px 0 0}
+.mark{display:flex;align-items:baseline;gap:10px}
+.xor{color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:30px;font-weight:600}
+.wordmark{font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:600;font-size:30px;letter-spacing:.5px}
+h1{
+  font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:600;
+  font-size:clamp(38px,7vw,64px);line-height:1.05;margin:36px 0 18px;letter-spacing:-0.5px;
+}
+h1 em{font-style:normal;color:var(--accent)}
+.lede{font-size:19px;max-width:640px;color:var(--muted)}
+.lede strong{color:var(--ink)}
+
+.status{
+  margin:34px 0 0;border:2px solid var(--ink);
+  display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;
+  padding:10px 14px;font-family:'IBM Plex Mono',monospace;font-size:13px;
+}
+.status b{background:var(--ink);color:var(--paper);padding:2px 8px;font-weight:600}
+.status span{color:var(--muted)}
+
+.eyebrow{
+  font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--muted);margin-bottom:14px;
+}
+.eyebrow::before{content:"// ";color:var(--accent)}
+
+.bytemap{margin:56px 0 8px}
+.strip{display:flex;height:56px;border:2px solid var(--ink)}
+.seg{display:flex;align-items:center;justify-content:center}
+.seg+.seg{border-left:2px solid var(--ink)}
+.seg-version{flex:4;background:color-mix(in srgb,var(--f-version) 22%,var(--paper))}
+.seg-prev{flex:32;background:color-mix(in srgb,var(--f-prev) 22%,var(--paper))}
+.seg-merkle{flex:32;background:color-mix(in srgb,var(--f-merkle) 22%,var(--paper))}
+.seg-time{flex:4;background:var(--f-time)}
+.seg-time .val{color:#fff;font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:12px;writing-mode:vertical-rl;letter-spacing:1px}
+.seg-bits{flex:4;background:color-mix(in srgb,var(--f-bits) 22%,var(--paper))}
+.seg-nonce{flex:6;background:color-mix(in srgb,var(--f-nonce) 22%,var(--paper))}
+.legend{display:flex;margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted)}
+.legend div{padding-right:6px}
+.lg-version{flex:4}.lg-prev{flex:32}.lg-merkle{flex:32}
+.lg-time{flex:4;color:var(--f-time);font-weight:600}.lg-bits{flex:4}.lg-nonce{flex:6}
+.mapnote{margin-top:18px;color:var(--muted);max-width:620px}
+.mapnote b{color:var(--ink)}
+@media(max-width:640px){.legend{display:none}.seg-version,.seg-bits{flex:3}}
+
+section{margin:72px 0}
+.proj{display:grid;grid-template-columns:200px 1fr;gap:8px 28px;border-top:2px solid var(--ink);padding:20px 0}
+.proj:last-of-type{border-bottom:2px solid var(--ink)}
+.proj h3{font-family:'IBM Plex Sans Condensed',sans-serif;font-size:22px;font-weight:600}
+.proj h3 .x{color:var(--accent);font-family:'IBM Plex Mono',monospace}
+.proj .tag{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:1px;
+  text-transform:uppercase;color:var(--muted)}
+.proj p{color:var(--muted)}
+.proj p b{color:var(--ink)}
+@media(max-width:640px){.proj{grid-template-columns:1fr;gap:4px}}
+
+.official{border:2px solid var(--ink);padding:22px 24px;background:var(--accent-soft)}
+.official ul{list-style:none;margin-top:8px;font-family:'IBM Plex Mono',monospace;font-size:13.5px;line-height:2}
+
+footer{border-top:2px solid var(--ink);margin-top:88px;padding:26px 0 60px;
+  font-size:13.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:8px 24px}
+footer a{text-decoration-thickness:1px}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+<header>
+  <div class="mark"><span class="xor" aria-hidden="true">⊕</span><span class="wordmark">bitcoinxor</span></div>
+  <h1>Tools for the day <em>the hash changes</em>.</h1>
+  <p class="lede">Independent, open-source tooling for the <strong>BIP-110
+  proof-of-work-change hard fork</strong> of Bitcoin — a miner, a non-custodial
+  pool, and an explorer. Built by an enthusiast, in the open, before launch day.</p>
+  <div class="status" role="note">
+    <b>STATUS</b><span>experimental · fork parameters not yet published ·
+    unaudited · use entirely at your own risk</span>
+  </div>
+</header>
+
+<div class="bytemap" aria-label="Block header byte layout with the time field highlighted">
+  <div class="eyebrow">where the fork lives</div>
+  <div class="strip">
+    <div class="seg seg-version"></div>
+    <div class="seg seg-prev"></div>
+    <div class="seg seg-merkle"></div>
+    <div class="seg seg-time"><span class="val">nTime</span></div>
+    <div class="seg seg-bits"></div>
+    <div class="seg seg-nonce"></div>
+  </div>
+  <div class="legend" aria-hidden="true">
+    <div class="lg-version">0–3<br>version</div>
+    <div class="lg-prev">4–35<br>prev block hash</div>
+    <div class="lg-merkle">36–67<br>merkle root</div>
+    <div class="lg-time">68–71<br>time</div>
+    <div class="lg-bits">72–75<br>bits</div>
+    <div class="lg-nonce">76–79<br>nonce</div>
+  </div>
+  <p class="mapnote">Four bytes of timestamp decide everything: past the scheduled
+  fork time, <b>the block hash itself is computed by a new algorithm</b> and every
+  SHA256d ASIC on earth goes quiet on this chain. These tools exist for the moment
+  after.</p>
+</div>
+
+<section>
+  <div class="eyebrow">the tools</div>
+  <div class="proj">
+    <div>
+      <h3><span class="x">⊕</span> xorminer</h3>
+      <div class="tag">released · experimental</div>
+    </div>
+    <p>A <span class="mono">getblocktemplate</span> miner with <b>pluggable hash
+    kernels</b> — CPU reference included, GPU kernels drop in behind a documented
+    protocol. Builds templates from your own node.
+    <br><a href="https://xorminer.com">xorminer.com</a> ·
+    <a href="https://github.com/bitcoinxor/xorminer">source</a></p>
+  </div>
+  <div class="proj">
+    <div>
+      <h3><span class="x">⊕</span> xorpool</h3>
+      <div class="tag">built · not yet operating</div>
+    </div>
+    <p>A TIDES-style pool coordinator that <b>never holds funds</b> — every block
+    pays its miners directly in the coinbase, split over a published share window.
+    Python reference and production Java implementation, wire-compatible.
+    <br><a href="https://xorpool.com">xorpool.com</a> ·
+    <a href="https://github.com/bitcoinxor/xorminer">source</a></p>
+  </div>
+  <div class="proj">
+    <div>
+      <h3><span class="x">⊕</span> explorer</h3>
+      <div class="tag">in development</div>
+    </div>
+    <p>A block explorer that follows the fork chain as first-class — <b>live at this
+    domain when the network is</b>.</p>
+  </div>
+</section>
+
+<section>
+  <div class="official">
+    <div class="eyebrow">official homes — everything else is an impersonation</div>
+    <ul>
+      <li>github.com/<b>bitcoinxor</b> · github.com/<b>xorminer</b> · github.com/<b>xorpool</b></li>
+      <li><b>bitcoinxor.org</b> · <b>xorminer.com</b> · <b>xorpool.com</b></li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  <span>MIT license</span>
+  <a href="https://github.com/bitcoinxor/xorminer">GitHub</a>
+  <span>Not affiliated with Bitcoin Core, Bitcoin Knots, or the BIP-110 developers.</span>
+</footer>
+
+</div>
+</body>
+</html>
