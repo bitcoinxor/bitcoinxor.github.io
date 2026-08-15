@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>run a node — bitcoinxor</title>
+<meta name="description" content="How to run a Bitcoin Knots node on the enforcing chain: setup, configuration for the split, and verifying which chain you are on.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%233E6FB0' stroke-width='3'/%3E%3Cpath d='M16 6v20M6 16h20' stroke='%233E6FB0' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans+Condensed:wght@600&family=IBM+Plex+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F4F6F5; --grid:#E3E8E7; --ink:#1E2833; --muted:#5A6672;
+  --accent:#3E6FB0; --accent-soft:#DCE6F2;
+  --f-time:#3E8F6C; --f-nonce:#D97A1F;
+  color-scheme: light;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:'IBM Plex Sans',sans-serif; color:var(--ink); background:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),
+                   linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:28px 28px; line-height:1.6;
+}
+.sheet{max-width:780px;margin:0 auto;padding:0 24px}
+a{color:var(--ink);text-decoration-color:var(--accent);text-decoration-thickness:2px;text-underline-offset:3px}
+a:hover{color:var(--accent)}
+a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mono{font-family:'IBM Plex Mono',monospace}
+header{padding:44px 0 0}
+.mark{display:flex;align-items:baseline;gap:10px}
+.mark a{text-decoration:none;display:flex;align-items:baseline;gap:10px}
+.xor{color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:600}
+.wordmark{font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:600;font-size:24px;letter-spacing:.5px}
+.nav{margin-top:20px;border:2px solid var(--ink);display:flex;flex-wrap:wrap;font-family:'IBM Plex Mono',monospace;font-size:13px}
+.nav a{padding:8px 14px;text-decoration:none;border-right:2px solid var(--ink)}
+.nav a:last-child{border-right:0}
+.nav a.cur{background:var(--ink);color:var(--paper)}
+.nav a:hover:not(.cur){background:var(--accent-soft);color:var(--ink)}
+h1{font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:600;
+  font-size:clamp(32px,6vw,50px);line-height:1.08;margin:36px 0 14px;letter-spacing:-0.5px}
+h1 em{font-style:normal;color:var(--accent)}
+.lede{font-size:18px;max-width:620px;color:var(--muted)}
+.lede strong{color:var(--ink)}
+main{margin-top:40px}
+h2{font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:600;font-size:26px;margin:46px 0 12px}
+h2::before{content:"// ";color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:15px;vertical-align:4px}
+main p{margin:12px 0;max-width:660px}
+main p b{color:var(--ink)}
+main ul{margin:12px 0 12px 22px;max-width:640px}
+main li{margin:6px 0}
+pre{border:2px solid var(--ink);background:#fff;padding:14px 16px;overflow-x:auto;
+  font-family:'IBM Plex Mono',monospace;font-size:13px;line-height:1.8;margin:16px 0}
+code{font-family:'IBM Plex Mono',monospace;font-size:.92em;background:#fff;
+  border:1px solid var(--grid);padding:1px 5px}
+pre code{border:0;padding:0;background:none}
+.callout{border:2px solid var(--ink);background:var(--accent-soft);padding:18px 20px;margin:26px 0;max-width:660px}
+.callout.warn{background:color-mix(in srgb,var(--f-nonce) 16%,var(--paper))}
+.callout.good{background:color-mix(in srgb,var(--f-time) 14%,var(--paper))}
+.callout b{display:block;font-family:'IBM Plex Mono',monospace;font-size:12px;
+  letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px}
+table{border-collapse:collapse;width:100%;margin:18px 0;font-size:14.5px}
+th,td{border:2px solid var(--ink);padding:9px 12px;text-align:left;vertical-align:top}
+th{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:1px;
+  text-transform:uppercase;background:var(--accent-soft);font-weight:600}
+.hash{font-family:'IBM Plex Mono',monospace;font-size:12px;word-break:break-all}
+.pending{color:var(--f-nonce);font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:1px;text-transform:uppercase}
+footer{border-top:2px solid var(--ink);margin-top:72px;padding:24px 0 60px;
+  font-size:13.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:8px 24px}
+footer a{text-decoration-thickness:1px}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+<header>
+  <div class="mark"><a href="/"><span class="xor" aria-hidden="true">⊕</span><span class="wordmark">bitcoinxor</span></a></div>
+  <nav class="nav" aria-label="Site">
+    <a href="/">overview</a>
+    <a href="/split">the split</a>
+    <a href="/node" class="cur" aria-current="page">run a node</a>
+    <a href="/wallet">wallet safety</a>
+    <a href="/mine">mining</a>
+  </nav>
+  <h1>Verify it <em>yourself</em>.</h1>
+  <p class="lede">During a chain split, explorers disagree, exchanges pick sides,
+  and social media is noise. A node of your own is the only answer to
+  <strong>"which chain am I actually on?"</strong> that doesn't require trusting
+  anyone. Here's the whole procedure.</p>
+</header>
+
+<main>
+
+<h2>What you need</h2>
+<ul>
+  <li><b>Disk:</b> a full node stores the whole chain — roughly 750&nbsp;GB and
+  growing. With <code>prune=550</code> that drops to under 10&nbsp;GB (you keep
+  full validation, you lose the ability to serve history).</li>
+  <li><b>Machine:</b> anything reasonably modern works; even a small PC or
+  mini-server. Initial sync takes hours-to-days depending on hardware and
+  bandwidth.</li>
+  <li><b>Software:</b> <a href="https://bitcoinknots.org">Bitcoin Knots</a> —
+  the node software of the enforcing chain. Current release:
+  <code>29.4.knots20260508</code>.</li>
+</ul>
+
+<h2>Step 1 — install Bitcoin Knots</h2>
+<p>Download from <a href="https://bitcoinknots.org">bitcoinknots.org</a> only —
+during a fork event, mirrors and lookalike sites are a real attack vector — and
+verify the release signatures before running anything. The official site warns,
+correctly, against downgrading or switching node software based on social-media
+advice.</p>
+
+<h2>Step 2 — configuration for the split</h2>
+<p>Two settings matter right now. In your <code>bitcoin.conf</code>:</p>
+<pre><code># blocks on the enforcing chain are slow until the PoW change;
+# without this a fresh node may think it is still syncing forever
+maxtipage=2592000
+
+# optional: prune to ~550 MB of blocks if disk is tight
+# prune=550</code></pre>
+<p>The <code>maxtipage</code> value is the official guidance from
+bitcoinknots.org for the current slow-block period.</p>
+
+<h2>Step 3 — confirm which chain you're on</h2>
+<p>Once synced past height 961633, ask your node for that block's hash:</p>
+<pre><code>$ bitcoin-cli getblockhash 961633</code></pre>
+<table>
+  <tr><th>If you get…</th><th>You are on…</th></tr>
+  <tr><td><span class="hash">0000000000000000000139eda19858a84b2ed80cb6056ba8449f0792d13d0968</span></td>
+      <td><b>the enforcing chain</b> (the one changing proof-of-work)</td></tr>
+  <tr><td>any other hash</td>
+      <td>the majority-hashrate chain</td></tr>
+</table>
+<p>Both chains agree on everything through block 961632
+(<span class="hash">…c78dbc16</span>) — that block is shared history.</p>
+
+<h2>What to expect day to day</h2>
+<ul>
+  <li><b>Slow blocks.</b> Until the proof-of-work change, only a small fraction
+  of hashrate mines this chain — gaps of hours between blocks are normal, not a
+  sign your node is broken.</li>
+  <li><b>Fewer peers than you're used to.</b> The enforcing-node network is
+  smaller than the pre-split network. Patience during initial sync.</li>
+  <li><b>Your wallet still works.</b> A node is also the most honest wallet
+  backend there is — see <a href="/wallet">wallet safety</a> before spending
+  anything on either chain.</li>
+</ul>
+
+<div class="callout warn">
+  <b>The proof-of-work change itself</b>
+  The hard fork proposed for <b>1 September 2026</b> will require a node
+  release that understands the new proof-of-work.
+  <span class="pending">no official fork release exists yet</span> — when it is
+  published, this page gains the upgrade procedure. Until then, be deeply
+  suspicious of any binary claiming to be "the fork node": check
+  <a href="https://bitcoinknots.org">bitcoinknots.org</a> and this page rather
+  than links from social media or DMs.
+</div>
+
+<h2>Checking status</h2>
+<p>Useful commands while you watch the split unfold:</p>
+<pre><code># tip height, hash, and sync state
+$ bitcoin-cli getblockchaininfo
+
+# how long since the last block (slow is normal pre-fork)
+$ bitcoin-cli getbestblockhash
+$ bitcoin-cli getblockheader $(bitcoin-cli getbestblockhash) | grep time
+
+# peer count
+$ bitcoin-cli getconnectioncount</code></pre>
+
+</main>
+
+<footer>
+  <a href="/">bitcoinxor.org</a>
+  <a href="https://github.com/bitcoinxor">GitHub</a>
+  <a href="https://x.com/bitcoinxor">@bitcoinxor</a>
+  <span>Not affiliated with Bitcoin Core, Bitcoin Knots, or the BIP-110 developers.</span>
+</footer>
+
+</div>
+</body>
+</html>

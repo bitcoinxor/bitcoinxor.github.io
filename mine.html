@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>mining — bitcoinxor</title>
+<meta name="description" content="Mining after the proof-of-work change: what's decided, what's pending, CPU and GPU mining with xorminer, and why Sia-era BLAKE2b ASICs matter again.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%233E6FB0' stroke-width='3'/%3E%3Cpath d='M16 6v20M6 16h20' stroke='%233E6FB0' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans+Condensed:wght@600&family=IBM+Plex+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F4F6F5; --grid:#E3E8E7; --ink:#1E2833; --muted:#5A6672;
+  --accent:#3E6FB0; --accent-soft:#DCE6F2;
+  --f-time:#3E8F6C; --f-nonce:#D97A1F;
+  color-scheme: light;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:'IBM Plex Sans',sans-serif; color:var(--ink); background:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),
+                   linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:28px 28px; line-height:1.6;
+}
+.sheet{max-width:780px;margin:0 auto;padding:0 24px}
+a{color:var(--ink);text-decoration-color:var(--accent);text-decoration-thickness:2px;text-underline-offset:3px}
+a:hover{color:var(--accent)}
+a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mono{font-family:'IBM Plex Mono',monospace}
+header{padding:44px 0 0}
+.mark{display:flex;align-items:baseline;gap:10px}
+.mark a{text-decoration:none;display:flex;align-items:baseline;gap:10px}
+.xor{color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:600}
+.wordmark{font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:600;font-size:24px;letter-spacing:.5px}
+.nav{margin-top:20px;border:2px solid var(--ink);display:flex;flex-wrap:wrap;font-family:'IBM Plex Mono',monospace;font-size:13px}
+.nav a{padding:8px 14px;text-decoration:none;border-right:2px solid var(--ink)}
+.nav a:last-child{border-right:0}
+.nav a.cur{background:var(--ink);color:var(--paper)}
+.nav a:hover:not(.cur){background:var(--accent-soft);color:var(--ink)}
+h1{font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:600;
+  font-size:clamp(32px,6vw,50px);line-height:1.08;margin:36px 0 14px;letter-spacing:-0.5px}
+h1 em{font-style:normal;color:var(--accent)}
+.lede{font-size:18px;max-width:620px;color:var(--muted)}
+.lede strong{color:var(--ink)}
+main{margin-top:40px}
+h2{font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:600;font-size:26px;margin:46px 0 12px}
+h2::before{content:"// ";color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:15px;vertical-align:4px}
+main p{margin:12px 0;max-width:660px}
+main p b{color:var(--ink)}
+main ul{margin:12px 0 12px 22px;max-width:640px}
+main li{margin:6px 0}
+pre{border:2px solid var(--ink);background:#fff;padding:14px 16px;overflow-x:auto;
+  font-family:'IBM Plex Mono',monospace;font-size:13px;line-height:1.8;margin:16px 0}
+code{font-family:'IBM Plex Mono',monospace;font-size:.92em;background:#fff;
+  border:1px solid var(--grid);padding:1px 5px}
+pre code{border:0;padding:0;background:none}
+.callout{border:2px solid var(--ink);background:var(--accent-soft);padding:18px 20px;margin:26px 0;max-width:660px}
+.callout.warn{background:color-mix(in srgb,var(--f-nonce) 16%,var(--paper))}
+.callout.good{background:color-mix(in srgb,var(--f-time) 14%,var(--paper))}
+.callout b{display:block;font-family:'IBM Plex Mono',monospace;font-size:12px;
+  letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px}
+table{border-collapse:collapse;width:100%;margin:18px 0;font-size:14.5px}
+th,td{border:2px solid var(--ink);padding:9px 12px;text-align:left;vertical-align:top}
+th{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:1px;
+  text-transform:uppercase;background:var(--accent-soft);font-weight:600}
+.ok{color:var(--f-time);font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:1px;text-transform:uppercase}
+.pending{color:var(--f-nonce);font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:1px;text-transform:uppercase}
+footer{border-top:2px solid var(--ink);margin-top:72px;padding:24px 0 60px;
+  font-size:13.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:8px 24px}
+footer a{text-decoration-thickness:1px}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+<header>
+  <div class="mark"><a href="/"><span class="xor" aria-hidden="true">⊕</span><span class="wordmark">bitcoinxor</span></a></div>
+  <nav class="nav" aria-label="Site">
+    <a href="/">overview</a>
+    <a href="/split">the split</a>
+    <a href="/node">run a node</a>
+    <a href="/wallet">wallet safety</a>
+    <a href="/mine" class="cur" aria-current="page">mining</a>
+  </nav>
+  <h1>Difficulty resets. <em>So does the race.</em></h1>
+  <p class="lede">When the proof-of-work changes, every SHA256d ASIC on earth
+  becomes irrelevant on this chain — and for a window, <strong>hardware you
+  already own competes</strong>: CPUs, GPUs, and a wave of resurrected
+  BLAKE2b-era mining rigs. What's decided, what isn't, and how to be ready.</p>
+</header>
+
+<main>
+
+<h2>Decided vs. pending</h2>
+<table>
+  <tr><th>Question</th><th>Status</th></tr>
+  <tr><td>New hash algorithm</td>
+      <td><b>BLAKE2b-256</b> <span class="ok">announced</span> — selected
+      2026-08-11 by a deterministic public procedure</td></tr>
+  <tr><td>Activation date</td>
+      <td>1 September 2026 <span class="pending">proposed</span></td></tr>
+  <tr><td>Exact header &amp; hashing construction</td>
+      <td><span class="pending">pending</span> — a draft design is circulating;
+      no final code published</td></tr>
+  <tr><td>Difficulty reset &amp; retarget rules</td>
+      <td><span class="pending">pending</span></td></tr>
+  <tr><td>Official node release for the fork</td>
+      <td><span class="pending">pending</span></td></tr>
+</table>
+<p>The honest consequence: <b>nobody can ship a final miner yet</b>, including
+us. Anyone selling you day-one hashrate, cloud contracts, or "fork-ready
+firmware" before the specification exists is guessing or scamming. What you
+<i>can</i> do now is have tested plumbing ready — that's what's below.</p>
+
+<h2>CPU &amp; GPU — xorminer</h2>
+<p><a href="https://xorminer.com">xorminer</a> is an open-source
+<code>getblocktemplate</code> miner built for exactly this event. It talks to
+your own node, builds its own block templates, and treats the hash function as
+a <b>pluggable kernel</b>:</p>
+<ul>
+  <li>The <b>CPU reference kernel</b> works today — including BLAKE2b-256 — and
+  is tested end-to-end against fork-simulation networks.</li>
+  <li><b>GPU kernels</b> plug in behind a small documented subprocess protocol.
+  The CUDA kernel ships when the final construction is published — the protocol
+  and everything around it is ready now.</li>
+</ul>
+<pre><code>$ git clone https://github.com/bitcoinxor/xorminer
+$ python3 -m xorminer --help</code></pre>
+<p>Realistic expectations: immediately after a difficulty reset, ordinary CPUs
+can find blocks. As hashrate floods in, difficulty follows. A window measured
+in days, not months — the preparation is the point.</p>
+
+<h2>The sleeping giants — Sia-era BLAKE2b ASICs</h2>
+<p>Here's the twist most day-one plans miss: <b>BLAKE2b has been ASIC-mined
+before</b>. The Sia network's 2018-era hardware — Obelisk SC1, iBeLink BM-S3,
+and boxes built on the same chips — hashes BLAKE2b at rates no GPU touches, and
+thousands of these units are sitting in closets, functionally worthless. If the
+final construction leaves them usable, they are the real day-one hashrate.</p>
+<ul>
+  <li>If you own retired Sia hardware: <b>don't sell it yet.</b> Power it on,
+  check it POSTs, find your controller passwords.</li>
+  <li>Whether — and exactly how — each vendor's firmware can drive the new
+  chain depends on final spec details. <span class="pending">detailed per-unit
+  guides land here when the spec does.</span></li>
+</ul>
+
+<h2>Pooled mining without custody — xorpool</h2>
+<p>Solo mining after the reset is a lottery. <a href="https://xorpool.com">xorpool</a>
+is a pool coordinator designed so that the pool <b>never holds your funds</b>:
+every found block pays miners directly in its coinbase, split over a published
+share window, and miners build their own block templates. Zero pool fee.
+Python and Java implementations, open source, tested on fork-simulation
+networks.</p>
+
+<div class="callout good">
+  <b>Being ready, concretely</b>
+  <ul style="margin-top:6px">
+    <li>Run a synced node on the enforcing chain now — it's the one
+    prerequisite everything else needs. <a href="/node">Guide.</a></li>
+    <li>Clone and run xorminer against your node today; the plumbing you test
+    now is the plumbing you'll mine with.</li>
+    <li>Have a wallet address of your own ready for coinbase payouts
+    (<a href="/wallet">wallet safety</a> first).</li>
+    <li>Watch this page and <a href="https://x.com/bitcoinxor">@bitcoinxor</a> —
+    when the spec lands, the final kernels, ASIC guides, and pool details land
+    here.</li>
+  </ul>
+</div>
+
+</main>
+
+<footer>
+  <a href="/">bitcoinxor.org</a>
+  <a href="https://github.com/bitcoinxor">GitHub</a>
+  <a href="https://x.com/bitcoinxor">@bitcoinxor</a>
+  <span>Not affiliated with Bitcoin Core, Bitcoin Knots, or the BIP-110 developers.</span>
+</footer>
+
+</div>
+</body>
+</html>

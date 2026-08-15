@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>wallet safety — bitcoinxor</title>
+<meta name="description" content="Keeping your bitcoin safe through the chain split: why your coins exist on both chains, replay risk, and the scams to expect.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%233E6FB0' stroke-width='3'/%3E%3Cpath d='M16 6v20M6 16h20' stroke='%233E6FB0' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans+Condensed:wght@600&family=IBM+Plex+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F4F6F5; --grid:#E3E8E7; --ink:#1E2833; --muted:#5A6672;
+  --accent:#3E6FB0; --accent-soft:#DCE6F2;
+  --f-time:#3E8F6C; --f-nonce:#D97A1F;
+  color-scheme: light;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:'IBM Plex Sans',sans-serif; color:var(--ink); background:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),
+                   linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:28px 28px; line-height:1.6;
+}
+.sheet{max-width:780px;margin:0 auto;padding:0 24px}
+a{color:var(--ink);text-decoration-color:var(--accent);text-decoration-thickness:2px;text-underline-offset:3px}
+a:hover{color:var(--accent)}
+a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mono{font-family:'IBM Plex Mono',monospace}
+header{padding:44px 0 0}
+.mark{display:flex;align-items:baseline;gap:10px}
+.mark a{text-decoration:none;display:flex;align-items:baseline;gap:10px}
+.xor{color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:600}
+.wordmark{font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:600;font-size:24px;letter-spacing:.5px}
+.nav{margin-top:20px;border:2px solid var(--ink);display:flex;flex-wrap:wrap;font-family:'IBM Plex Mono',monospace;font-size:13px}
+.nav a{padding:8px 14px;text-decoration:none;border-right:2px solid var(--ink)}
+.nav a:last-child{border-right:0}
+.nav a.cur{background:var(--ink);color:var(--paper)}
+.nav a:hover:not(.cur){background:var(--accent-soft);color:var(--ink)}
+h1{font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:600;
+  font-size:clamp(32px,6vw,50px);line-height:1.08;margin:36px 0 14px;letter-spacing:-0.5px}
+h1 em{font-style:normal;color:var(--accent)}
+.lede{font-size:18px;max-width:620px;color:var(--muted)}
+.lede strong{color:var(--ink)}
+main{margin-top:40px}
+h2{font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:600;font-size:26px;margin:46px 0 12px}
+h2::before{content:"// ";color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:15px;vertical-align:4px}
+main p{margin:12px 0;max-width:660px}
+main p b{color:var(--ink)}
+main ul{margin:12px 0 12px 22px;max-width:640px}
+main li{margin:6px 0}
+code{font-family:'IBM Plex Mono',monospace;font-size:.92em;background:#fff;
+  border:1px solid var(--grid);padding:1px 5px}
+.callout{border:2px solid var(--ink);background:var(--accent-soft);padding:18px 20px;margin:26px 0;max-width:660px}
+.callout.warn{background:color-mix(in srgb,var(--f-nonce) 16%,var(--paper))}
+.callout.good{background:color-mix(in srgb,var(--f-time) 14%,var(--paper))}
+.callout b{display:block;font-family:'IBM Plex Mono',monospace;font-size:12px;
+  letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px}
+.pending{color:var(--f-nonce);font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:1px;text-transform:uppercase}
+footer{border-top:2px solid var(--ink);margin-top:72px;padding:24px 0 60px;
+  font-size:13.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:8px 24px}
+footer a{text-decoration-thickness:1px}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+<header>
+  <div class="mark"><a href="/"><span class="xor" aria-hidden="true">⊕</span><span class="wordmark">bitcoinxor</span></a></div>
+  <nav class="nav" aria-label="Site">
+    <a href="/">overview</a>
+    <a href="/split">the split</a>
+    <a href="/node">run a node</a>
+    <a href="/wallet" class="cur" aria-current="page">wallet safety</a>
+    <a href="/mine">mining</a>
+  </nav>
+  <h1>Your keys now control <em>two</em> balances.</h1>
+  <p class="lede">Every coin that existed before block <span class="mono">961633</span>
+  exists on <strong>both chains</strong>, and the same keys control both copies.
+  That's good news — but it creates one real technical hazard and a wave of
+  predictable scams. Five minutes here covers both.</p>
+</header>
+
+<main>
+
+<h2>The three facts that matter</h2>
+<ul>
+  <li><b>Nothing was taken from you.</b> A chain split copies the ledger; it
+  doesn't move coins. Your pre-split balance is intact on the majority chain
+  <i>and</i> on the enforcing chain.</li>
+  <li><b>Your seed phrase controls both.</b> No new wallet, no migration, no
+  "claim" process is required — ever. Anyone telling you otherwise wants your
+  seed.</li>
+  <li><b>Doing nothing is safe.</b> Coins sitting still are not at risk from
+  the split. All the hazards below involve <i>moving</i> them.</li>
+</ul>
+
+<h2>Replay: the one real technical risk</h2>
+<p>Both chains still speak the same transaction format. That means a transaction
+you broadcast on one chain can be copied — "replayed" — onto the other, where it
+is equally valid. Spend coins on one side carelessly and you may find you spent
+them on both.</p>
+<div class="callout warn">
+  <b>Until replay protection is active</b>
+  Replay protection for the enforcing chain (an opt-in signature-hash change) is
+  <span class="pending">in development, not yet active</span>. Until it ships
+  and this page says so, the safe options are:
+  <ul style="margin-top:8px">
+    <li><b>Don't move pre-split coins</b> unless you have a concrete reason to.</li>
+    <li>If you must move them, understand that the same transaction may confirm
+    on both chains, and to the same addresses — keep destination and change
+    addresses ones <i>you</i> control on both.</li>
+    <li>Post-split coins (mined or received after 961633) exist on one chain
+    only and don't replay.</li>
+  </ul>
+</div>
+
+<h2>The scams you will see</h2>
+<p>Every fork in Bitcoin's history has produced the same crop. Expect all of
+these, aimed at both chains' users:</p>
+<ul>
+  <li><b>"Claim your forked coins" websites and apps</b> asking for your seed
+  phrase. There is no claim process. Entering a seed anywhere is handing over
+  both balances.</li>
+  <li><b>Fake wallet or node downloads</b> — lookalike domains, "updated for the
+  fork" binaries in DMs and forum posts. Get node software only from
+  <a href="https://bitcoinknots.org">bitcoinknots.org</a> (enforcing chain) or
+  bitcoincore.org (majority chain), and verify signatures.</li>
+  <li><b>Urgency manufacturing</b> — "move your coins before September 1 or lose
+  them." False. The fork changes how blocks are <i>mined</i>, not who owns what.</li>
+  <li><b>Support impersonators</b> in Discord/Telegram/X replies. No legitimate
+  developer, pool, or this site will ever DM you first, ask for your seed, or
+  ask you to "validate" your wallet.</li>
+</ul>
+
+<h2>Hardware wallet holders</h2>
+<p>Your device keeps working on both chains — the split doesn't affect key
+storage at all. Concretely:</p>
+<ul>
+  <li>Do <b>not</b> type your seed into any website, app, or "fork tool". The
+  device exists so the seed never leaves it.</li>
+  <li>Firmware updates come only from your vendor's official app, on its usual
+  schedule. "Emergency fork firmware" from anywhere else is an attack.</li>
+  <li>To interact with the enforcing chain specifically, the honest path is your
+  own node — see <a href="/node">run a node</a>.</li>
+</ul>
+
+<h2>Coins on exchanges</h2>
+<p>Exchange balances are IOUs, not keys. Whether you get credited on one chain,
+both, or neither after the fork is each exchange's policy decision, not a
+protocol rule. If controlling both sides of your balance matters to you, the
+only guarantee is withdrawing to your own keys — <i>with the replay caveat
+above</i> — before relying on any exchange's fork handling.</p>
+
+<div class="callout good">
+  <b>The calm version</b>
+  Keys in your custody, seed never typed anywhere, no rushed transactions, no
+  "claiming", software only from official sources. Do that and the split is a
+  spectator event.
+</div>
+
+</main>
+
+<footer>
+  <a href="/">bitcoinxor.org</a>
+  <a href="https://github.com/bitcoinxor">GitHub</a>
+  <a href="https://x.com/bitcoinxor">@bitcoinxor</a>
+  <span>Not affiliated with Bitcoin Core, Bitcoin Knots, or the BIP-110 developers.</span>
+</footer>
+
+</div>
+</body>
+</html>

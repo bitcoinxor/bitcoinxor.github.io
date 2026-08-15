@@ -50,6 +50,12 @@ h1 em{font-style:normal;color:var(--accent)}
 .status b{background:var(--ink);color:var(--paper);padding:2px 8px;font-weight:600}
 .status span{color:var(--muted)}
 
+.nav{margin-top:22px;border:2px solid var(--ink);display:inline-flex;flex-wrap:wrap;font-family:'IBM Plex Mono',monospace;font-size:13px}
+.nav a{padding:8px 14px;text-decoration:none;border-right:2px solid var(--ink)}
+.nav a:last-child{border-right:0}
+.nav a.cur{background:var(--ink);color:var(--paper)}
+.nav a:hover:not(.cur){background:var(--accent-soft);color:var(--ink)}
+
 .eyebrow{
   font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:1.5px;
   text-transform:uppercase;color:var(--muted);margin-bottom:14px;
@@ -99,13 +105,21 @@ footer a{text-decoration-thickness:1px}
 
 <header>
   <div class="mark"><span class="xor" aria-hidden="true">⊕</span><span class="wordmark">bitcoinxor</span></div>
+  <nav class="nav" aria-label="Site">
+    <a href="/" class="cur" aria-current="page">overview</a>
+    <a href="/split">the split</a>
+    <a href="/node">run a node</a>
+    <a href="/wallet">wallet safety</a>
+    <a href="/mine">mining</a>
+  </nav>
   <h1>Tools for the day <em>the hash changes</em>.</h1>
   <p class="lede">Independent, open-source tooling for the <strong>BIP-110
   proof-of-work-change hard fork</strong> of Bitcoin — a miner, a non-custodial
   pool, and an explorer. Built by an enthusiast, in the open, before launch day.</p>
   <div class="status" role="note">
-    <b>STATUS</b><span>experimental · fork parameters not yet published ·
-    unaudited · use entirely at your own risk</span>
+    <b>STATUS</b><span>chain split 2026-08-08 at height 961632 · algorithm
+    BLAKE2b-256 · activation proposed 2026-09-01 · full spec pending ·
+    tools experimental &amp; unaudited — use entirely at your own risk</span>
   </div>
 </header>
 
@@ -132,6 +146,45 @@ footer a{text-decoration-thickness:1px}
   SHA256d ASIC on earth goes quiet on this chain. These tools exist for the moment
   after.</p>
 </div>
+
+<section>
+  <div class="eyebrow">the guides</div>
+  <div class="proj">
+    <div>
+      <h3><a href="/split">the split</a></h3>
+      <div class="tag">start here</div>
+    </div>
+    <p>What actually happened on 8 August 2026, the exact split-point block
+    hashes, the timeline to the proof-of-work change — <b>and what it means
+    for you</b>, in plain terms.</p>
+  </div>
+  <div class="proj">
+    <div>
+      <h3><a href="/node">run a node</a></h3>
+      <div class="tag">verify yourself</div>
+    </div>
+    <p>The whole procedure: install, the two config lines that matter during
+    the split, and the one command that settles <b>"which chain am I on?"</b>
+    with your own hardware.</p>
+  </div>
+  <div class="proj">
+    <div>
+      <h3><a href="/wallet">wallet safety</a></h3>
+      <div class="tag">read before moving coins</div>
+    </div>
+    <p>Your keys now control balances on both chains. The <b>replay risk</b>
+    that makes careless spending dangerous, and the scams every fork event
+    produces — seed phishing, fake wallets, manufactured urgency.</p>
+  </div>
+  <div class="proj">
+    <div>
+      <h3><a href="/mine">mining</a></h3>
+      <div class="tag">cpu · gpu · resurrected asics</div>
+    </div>
+    <p>What's decided versus pending, mining with hardware you already own,
+    and why <b>Sia-era BLAKE2b ASICs</b> are the sleeping giants of day one.</p>
+  </div>
+</section>
 
 <section>
   <div class="eyebrow">the tools</div>
@@ -180,6 +233,7 @@ footer a{text-decoration-thickness:1px}
 <footer>
   <span>MIT license</span>
   <a href="https://github.com/bitcoinxor/xorminer">GitHub</a>
+  <a href="https://x.com/bitcoinxor">@bitcoinxor</a>
   <span>Not affiliated with Bitcoin Core, Bitcoin Knots, or the BIP-110 developers.</span>
 </footer>
 
