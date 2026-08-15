@@ -89,9 +89,9 @@ footer a{text-decoration-thickness:1px}
   </nav>
   <h1>One chain became <em>two</em>.</h1>
   <p class="lede">On <strong>8 August 2026</strong> the Bitcoin network split.
-  Every block up to height <span class="mono">961632</span> is shared history;
-  from <span class="mono">961633</span> onward there are two chains, and one of
-  them plans to change its proof-of-work. Here is what happened, in plain terms.</p>
+  Every block up to height <span class="mono">961631</span> is shared history;
+  at <span class="mono">961632</span> the chains diverge, and one of them plans
+  to change its proof-of-work. Here is what happened, in plain terms.</p>
 </header>
 
 <main>
@@ -109,9 +109,10 @@ own rules:</p>
   <li><b>The majority-hashrate chain</b> — followed by Bitcoin Core and nearly
   all existing SHA256d mining hardware.</li>
   <li><b>The enforcing chain</b> — followed by Bitcoin Knots nodes. Block
-  production here is slow, because only a small fraction of hashrate mines it.
-  This side plans a <b>proof-of-work change</b> so that SHA256d hardware cannot
-  attack or dominate it — the hard fork this site's tools exist for.</li>
+  production on the enforcing chain is slow, because only a small fraction of
+  hashrate mines it. The enforcing chain plans a <b>proof-of-work change</b> so
+  that SHA256d hardware cannot attack or dominate it — the hard fork this
+  site's tools exist for.</li>
 </ul>
 
 <h2>The split point, precisely</h2>
@@ -119,12 +120,12 @@ own rules:</p>
 <a href="/node">run a node</a> for how.</p>
 <table>
   <tr><th>Height</th><th>Block</th></tr>
-  <tr><td><span class="d">961632</span><br>last shared block</td>
+  <tr><td><span class="d">961631</span><br>last shared block</td>
+      <td><span class="hash">00000000000000000000807f9dc917442a67910426d79ebb2f8aa2149327ce8a</span></td></tr>
+  <tr><td><span class="d">961632</span><br>first enforcing-chain block</td>
       <td><span class="hash">0000000000000000000169eb6f811ddbd0daf343af7b62180cdb13e7c78dbc16</span></td></tr>
-  <tr><td><span class="d">961633</span><br>enforcing chain</td>
-      <td><span class="hash">0000000000000000000139eda19858a84b2ed80cb6056ba8449f0792d13d0968</span></td></tr>
 </table>
-<p>If your node's block 961633 matches the hash above, you are on the enforcing
+<p>If your node's block 961632 matches the hash above, you are on the enforcing
 chain. If it differs, you are on the majority chain.</p>
 
 <h2>Timeline</h2>
@@ -136,7 +137,8 @@ chain. If it differs, you are on the majority chain.</p>
   <tr><td><span class="d">2026</span></td>
       <td>The filtering soft fork fails to reach its 55% signaling threshold.</td></tr>
   <tr><td><span class="d">2026-08-08</span></td>
-      <td><b>Chain split</b> after block 961632.</td></tr>
+      <td><b>Chain split</b> at block 961632 — the first block the two chains
+      disagree on.</td></tr>
   <tr><td><span class="d">2026-08-11</span></td>
       <td>New proof-of-work algorithm selected by a deterministic public
       procedure: <b>BLAKE2b-256</b>.</td></tr>

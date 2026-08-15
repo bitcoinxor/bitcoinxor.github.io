@@ -124,17 +124,17 @@ maxtipage=2592000
 bitcoinknots.org for the current slow-block period.</p>
 
 <h2>Step 3 — confirm which chain you're on</h2>
-<p>Once synced past height 961633, ask your node for that block's hash:</p>
-<pre><code>$ bitcoin-cli getblockhash 961633</code></pre>
+<p>Once synced past height 961632, ask your node for that block's hash:</p>
+<pre><code>$ bitcoin-cli getblockhash 961632</code></pre>
 <table>
   <tr><th>If you get…</th><th>You are on…</th></tr>
-  <tr><td><span class="hash">0000000000000000000139eda19858a84b2ed80cb6056ba8449f0792d13d0968</span></td>
+  <tr><td><span class="hash">0000000000000000000169eb6f811ddbd0daf343af7b62180cdb13e7c78dbc16</span></td>
       <td><b>the enforcing chain</b> (the one changing proof-of-work)</td></tr>
   <tr><td>any other hash</td>
       <td>the majority-hashrate chain</td></tr>
 </table>
-<p>Both chains agree on everything through block 961632
-(<span class="hash">…c78dbc16</span>) — that block is shared history.</p>
+<p>Both chains agree on everything through block 961631
+(<span class="hash">…9327ce8a</span>) — that block is shared history.</p>
 
 <h2>What to expect day to day</h2>
 <ul>
