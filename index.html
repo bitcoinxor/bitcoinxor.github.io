@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>bitcoinxor — tools for the chain that changed its hash</title>
-<meta name="description" content="Independent open-source tooling for the BIP-110 proof-of-work-change hard fork of Bitcoin, live since block 961640: miner, pool, and explorer.">
+<meta name="description" content="Independent guides and open-source reference code for the BIP-110 proof-of-work-change hard fork of Bitcoin, live since block 961640.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%233E6FB0' stroke-width='3'/%3E%3Cpath d='M16 6v20M6 16h20' stroke='%233E6FB0' stroke-width='3'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -121,10 +121,10 @@ footer a{text-decoration-thickness:1px}
     <a href="/mine">mining</a>
   </nav>
   <h1>The hash <em>changed</em>.</h1>
-  <p class="lede">Independent, open-source tooling for the <strong>BIP-110
-  proof-of-work-change hard fork</strong> of Bitcoin — a miner, a non-custodial
-  pool, and an explorer. Built by an enthusiast, in the open, since before
-  fork day. The fork is now <strong>live</strong>.</p>
+  <p class="lede">Independent guides and open-source reference code for the
+  <strong>BIP-110 proof-of-work-change hard fork</strong> of Bitcoin — plain
+  language, verifiable against your own node. Built by an enthusiast, in the
+  open, since before fork day. The fork is now <strong>live</strong>.</p>
   <div class="status" role="note">
     <b>STATUS</b><span>chain split 2026-08-08 at height 961632 ·
     BLAKE2b-256 live since height 961640 (2026-08-29 22:14 UTC) ·
@@ -214,27 +214,30 @@ footer a{text-decoration-thickness:1px}
 </section>
 
 <section>
-  <div class="eyebrow">the tools</div>
+  <div class="eyebrow">the code</div>
   <div class="proj">
     <div>
       <h3><span class="x">⊕</span> xorminer</h3>
-      <div class="tag">released · experimental</div>
+      <div class="tag">reference code</div>
     </div>
-    <p>A <span class="mono">getblocktemplate</span> miner with <b>pluggable hash
-    kernels</b> — CPU reference included, GPU kernels drop in behind a documented
-    protocol. Builds templates from your own node. The kernel update for the
-    final 164-byte header pipeline is in progress.
+    <p>A <span class="mono">getblocktemplate</span> miner with pluggable hash
+    kernels, built before the fork — now maintained as reference code, not a
+    production miner. Its most useful piece today: <b>a byte-exact Python
+    implementation of the live PoW pipeline</b>, validated against the official
+    test vectors from the node source tree.
     <br><a href="https://xorminer.com">xorminer.com</a> ·
     <a href="https://github.com/bitcoinxor/xorminer">source</a></p>
   </div>
   <div class="proj">
     <div>
       <h3><span class="x">⊕</span> xorpool</h3>
-      <div class="tag">built · not yet operating</div>
+      <div class="tag">reference design · no public pool</div>
     </div>
     <p>A TIDES-style pool coordinator that <b>never holds funds</b> — every block
     pays its miners directly in the coinbase, split over a published share window.
-    Python reference and production Java implementation, wire-compatible.
+    Python and Java implementations, wire-compatible. Published as a design
+    reference; <b>no public pool operates under this name, and none is
+    planned</b>.
     <br><a href="https://xorpool.com">xorpool.com</a> ·
     <a href="https://github.com/bitcoinxor/xorminer">source</a></p>
   </div>
@@ -244,7 +247,7 @@ footer a{text-decoration-thickness:1px}
       <div class="tag">in development</div>
     </div>
     <p>A block explorer that follows the fork chain as first-class — <b>live at this
-    domain when the network is</b>.</p>
+    domain when it's ready</b>.</p>
   </div>
 </section>
 

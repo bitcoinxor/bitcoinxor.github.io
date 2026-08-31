@@ -125,28 +125,27 @@ Sia-era ASIC hardware. <b>The much-discussed CPU/GPU window never existed</b>:
 the chain opened already at ASIC scale. Solo mining with hardware you already
 own is a lottery ticket, not a plan.</p>
 
-<h2>CPU &amp; GPU — xorminer</h2>
-<p><a href="https://xorminer.com">xorminer</a> is an open-source
-<code>getblocktemplate</code> miner built for exactly this event. It talks to
-your own node, builds its own block templates, and treats the hash function as
-a <b>pluggable kernel</b>:</p>
+<h2>CPU &amp; GPU — and why this site no longer ships a miner</h2>
+<p>Realistic expectations, with the fork behind us: at network scale a CPU or
+GPU will essentially never find a solo block, and nothing about that changes
+with better software. Where small hardware still matters is <b>pooled
+mining</b> — contributing shares to a pool run by people with real
+infrastructure — and testing, development, and private networks.</p>
+<p>Accordingly, <a href="https://xorminer.com">xorminer</a> — the
+<code>getblocktemplate</code> miner built here before fork day — is maintained
+as <b>reference code rather than a production miner</b>. What's in it for a
+builder:</p>
 <ul>
-  <li>The <b>plumbing</b> — templates, coinbase construction, submission,
-  stale-tip handling — is tested end-to-end against fork-simulation networks,
-  and a byte-exact Python reference of the final hash pipeline passes all of
-  the official test vectors from the node source tree.</li>
-  <li>The <b>kernel update for the final 164-byte header</b> (two BLAKE2b
-  passes over staged messages, plus the xor-key mask) is
-  <span class="pending">in progress</span> — the previous kernels implement
-  the pre-release draft construction and cannot mine the live chain yet.</li>
+  <li>A <b>byte-exact Python implementation of the live PoW pipeline</b>
+  (the 164-byte header, both BLAKE2b passes, the xor-key mask), validated
+  against all of the official test vectors from the node source tree — a
+  spec you can run.</li>
+  <li>Tested <b>plumbing</b> — template building, coinbase construction,
+  submission, stale-tip handling — plus a documented pluggable-kernel
+  protocol, exercised end-to-end on fork-simulation networks.</li>
 </ul>
 <pre><code>$ git clone https://github.com/bitcoinxor/xorminer
-$ python3 -m xorminer --help</code></pre>
-<p>Realistic expectations, with the fork behind us: at network scale a CPU or
-GPU will essentially never find a solo block. Where they still matter is
-<b>pooled mining</b> — contributing small shares to a pool — and testing,
-development, and private networks. That is the direction this tooling serves
-now.</p>
+$ python3 -m xorminer --selftest</code></pre>
 
 <h2>The giants woke up — Sia-era BLAKE2b ASICs</h2>
 <p>The twist this site flagged before fork day played out exactly:
@@ -166,20 +165,21 @@ mining job. Resurrected Sia fleets are the network's hashrate today.</p>
   here as we can verify them.</li>
 </ul>
 
-<h2>Pooled mining without custody — xorpool</h2>
-<p>Solo mining at network scale is a lottery. <a href="https://xorpool.com">xorpool</a>
-is a pool coordinator designed so that the pool <b>never holds your funds</b>:
-every found block pays miners directly in its coinbase, split over a published
-share window, and miners build their own block templates. Zero pool fee.
-Python and Java implementations, open source, tested on fork-simulation
-networks.</p>
+<h2>Pooled mining — how to judge a pool here</h2>
 <p>The final header design has a role written into it for pools: the secret
 <span class="mono">xor_key</span> masks the block hash so that a miner can
 verify its own shares but <b>cannot tell a share from a winning block</b> —
 only the key-holder can, which defeats block-withholding attacks against the
-pool. Adapting xorpool to the final construction is
-<span class="pending">in progress</span>; it is not yet operating as a public
-pool.</p>
+pool. Expect serious pools on this chain to use it. Beyond that, the questions
+worth asking any pool are the custody ones: does it hold balances, or do blocks
+pay miners directly? Can you recompute your payout from public data?</p>
+<p>One published answer to those questions is
+<a href="https://xorpool.com">xorpool</a> — a TIDES-style coordinator designed
+so the pool <b>never holds funds</b>: every block pays miners directly in its
+coinbase, split over a published share window, with miners building their own
+templates. It's maintained as an open-source <b>design reference</b>;
+<b>no public pool operates under that name, and none is planned</b> — anything
+claiming otherwise is an impersonation.</p>
 
 <div class="callout good">
   <b>Where to plug in, concretely</b>
@@ -193,8 +193,7 @@ pool.</p>
     <li>Have a wallet address of your own ready for coinbase payouts
     (<a href="/wallet">wallet safety</a> first).</li>
     <li>Watch this page and <a href="https://x.com/bitcoinxor">@bitcoinxor</a> —
-    the header-v2 kernels, per-unit ASIC guides, and pool details land here as
-    they're finished and verified.</li>
+    guides keep updating as the post-fork network settles.</li>
   </ul>
 </div>
 
