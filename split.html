@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>the split — bitcoinxor</title>
-<meta name="description" content="What happened to Bitcoin in August 2026: the chain split at block 961632, the proposed proof-of-work change, and what it means for you.">
+<meta name="description" content="What happened to Bitcoin in August 2026: the chain split at block 961632, the BLAKE2b proof-of-work change that activated at block 961640, and what it means for you.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%233E6FB0' stroke-width='3'/%3E%3Cpath d='M16 6v20M6 16h20' stroke='%233E6FB0' stroke-width='3'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -90,8 +90,9 @@ footer a{text-decoration-thickness:1px}
   <h1>One chain became <em>two</em>.</h1>
   <p class="lede">On <strong>8 August 2026</strong> the Bitcoin network split.
   Every block up to height <span class="mono">961631</span> is shared history;
-  at <span class="mono">961632</span> the chains diverge, and one of them plans
-  to change its proof-of-work. Here is what happened, in plain terms.</p>
+  at <span class="mono">961632</span> the chains diverge — and on
+  <strong>29 August 2026</strong>, the enforcing chain <strong>changed its
+  proof-of-work</strong>. Here is what happened, in plain terms.</p>
 </header>
 
 <main>
@@ -108,11 +109,13 @@ own rules:</p>
 <ul>
   <li><b>The majority-hashrate chain</b> — followed by Bitcoin Core and nearly
   all existing SHA256d mining hardware.</li>
-  <li><b>The enforcing chain</b> — followed by Bitcoin Knots nodes. Block
-  production on the enforcing chain is slow, because only a small fraction of
-  hashrate mines it. The enforcing chain plans a <b>proof-of-work change</b> so
-  that SHA256d hardware cannot attack or dominate it — the hard fork this
-  site's tools exist for.</li>
+  <li><b>The enforcing chain</b> — followed by Bitcoin Knots nodes. For three
+  weeks after the split, block production on the enforcing chain was very slow,
+  because only a small fraction of SHA256d hashrate mined it. On 29 August 2026
+  it carried out its planned <b>proof-of-work change</b> — the hard fork this
+  site's tools exist for — so that SHA256d hardware cannot attack or dominate
+  it. Since block <span class="mono">961640</span> the enforcing chain is mined
+  with BLAKE2b-256 and produces blocks regularly again.</li>
 </ul>
 
 <h2>The split point, precisely</h2>
@@ -142,12 +145,16 @@ chain. If it differs, you are on the majority chain.</p>
   <tr><td><span class="d">2026-08-11</span></td>
       <td>New proof-of-work algorithm selected by a deterministic public
       procedure: <b>BLAKE2b-256</b>.</td></tr>
-  <tr><td><span class="d">2026-09-01</span></td>
-      <td>Proposed activation of the proof-of-work change.
-      <span class="pending">proposed — not final</span></td></tr>
-  <tr><td><span class="d">—</span></td>
-      <td>Full technical specification and official release.
-      <span class="pending">pending</span></td></tr>
+  <tr><td><span class="d">2026-08</span></td>
+      <td>Final specification published and shipped: a redesigned 164-byte block
+      header and the BLAKE2b-256 hash pipeline, in the Bitcoin Knots
+      <span class="mono">v29.4.1</span> release-candidate series.</td></tr>
+  <tr><td><span class="d">2026-08-29</span></td>
+      <td><b>Proof-of-work change activates</b> at height
+      <span class="mono">961640</span> — the first BLAKE2b block, mined at
+      22:14 UTC, two days ahead of the proposed 1 September date. Echoing the
+      genesis block, its coinbase carries a newspaper headline:
+      <span class="mono">"8-30 NYPost Deride And Conquer"</span>.</td></tr>
 </table>
 
 <h2>What this means for you</h2>
@@ -166,9 +173,10 @@ chain. If it differs, you are on the majority chain.</p>
 </div>
 <div class="callout">
   <b>If you want to mine</b>
-  After the proof-of-work change, SHA256d ASICs are irrelevant on this chain —
-  it restarts CPU/GPU-mineable, and retired BLAKE2b hardware from the Sia era
-  becomes interesting again. See <a href="/mine">mining</a>.
+  Since the proof-of-work change, SHA256d ASICs are irrelevant on the enforcing
+  chain — and retired BLAKE2b hardware from the Sia era took over from block
+  one, at rates no CPU or GPU touches. See <a href="/mine">mining</a> for the
+  real numbers and where you fit.
 </div>
 
 <h2>Where to verify claims</h2>
@@ -180,8 +188,10 @@ chain. If it differs, you are on the majority chain.</p>
   you're on.</li>
 </ul>
 <p>This site is independent tooling and documentation — not an official project
-voice. Where something above is proposed rather than decided, it is marked
-<span class="pending">pending</span>, and this page updates as facts land.</p>
+voice. Everything above is stated as chain fact you can check against your own
+node, and this page keeps updating as facts land — it said
+<span class="pending">pending</span> where things were undecided before the
+fork, and says so again if anything reopens.</p>
 
 </main>
 

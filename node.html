@@ -101,8 +101,11 @@ footer a{text-decoration-thickness:1px}
   mini-server. Initial sync takes hours-to-days depending on hardware and
   bandwidth.</li>
   <li><b>Software:</b> <a href="https://bitcoinknots.org">Bitcoin Knots</a> —
-  the node software of the enforcing chain. Current release:
-  <code>29.4.knots20260508</code>.</li>
+  the node software of the enforcing chain. Since the proof-of-work change you
+  need the fork-aware <code>v29.4.1</code> series (release candidate
+  <code>rc4</code> at the time of writing) — <b>the older
+  <code>29.4.knots20260508</code> release cannot read post-fork blocks</b> and
+  stalls at height 961639.</li>
 </ul>
 
 <h2>Step 1 — install Bitcoin Knots</h2>
@@ -112,16 +115,29 @@ verify the release signatures before running anything. The official site warns,
 correctly, against downgrading or switching node software based on social-media
 advice.</p>
 
-<h2>Step 2 — configuration for the split</h2>
-<p>Two settings matter right now. In your <code>bitcoin.conf</code>:</p>
-<pre><code># blocks on the enforcing chain are slow until the PoW change;
-# without this a fresh node may think it is still syncing forever
-maxtipage=2592000
+<h2>Step 2 — configuration</h2>
+<p>In your <code>bitcoin.conf</code>:</p>
+<pre><code># REQUIRED since the proof-of-work change: the node refuses to start
+# without this line. Exact string, including spaces and capitalization.
+blake2b_headline=8-30 NYPost Deride And Conquer
 
 # optional: prune to ~550 MB of blocks if disk is tight
 # prune=550</code></pre>
-<p>The <code>maxtipage</code> value is the official guidance from
-bitcoinknots.org for the current slow-block period.</p>
+<div class="callout">
+  <b>Why the node makes you type a headline</b>
+  It's a deliberate homage to the genesis block, which embedded a newspaper
+  headline ("Chancellor on brink of second bailout for banks") as proof it
+  wasn't mined in advance. The first BLAKE2b block —
+  <span class="mono">961640</span> — was required by consensus to carry a
+  headline from fork day in its coinbase, and every node operator types it in
+  rather than shipping it in a default config. Your node checks the string
+  byte-for-byte against that block. Get it wrong and the node either refuses
+  to start (missing) or rejects block 961640 (mistyped).
+</div>
+<p>The <code>maxtipage=2592000</code> line recommended during the slow-block
+period between the split and the proof-of-work change is no longer needed —
+blocks arrive every few minutes again — but it is harmless if you still have
+it.</p>
 
 <h2>Step 3 — confirm which chain you're on</h2>
 <p>Once synced past height 961632, ask your node for that block's hash:</p>
@@ -135,12 +151,19 @@ bitcoinknots.org for the current slow-block period.</p>
 </table>
 <p>Both chains agree on everything through block 961631
 (<span class="hash">…9327ce8a</span>) — that block is shared history.</p>
+<p>And to confirm you're past the proof-of-work change, check the first
+BLAKE2b block:</p>
+<pre><code>$ bitcoin-cli getblockhash 961640
+0000000000000050c1e5f69672f459293be14f46e5a494e7a8c8541396f18eeb</code></pre>
+<p>Notice the hash: far fewer leading zeros than the SHA256d blocks before it —
+the visible signature of the difficulty reset that came with the new
+algorithm.</p>
 
 <h2>What to expect day to day</h2>
 <ul>
-  <li><b>Slow blocks.</b> Until the proof-of-work change, only a small fraction
-  of hashrate mines this chain — gaps of hours between blocks are normal, not a
-  sign your node is broken.</li>
+  <li><b>Regular blocks again.</b> Since the proof-of-work change activated at
+  height 961640, the enforcing chain produces blocks every few minutes. (The
+  hours-long gaps of the 8–29 August slow-block period are history.)</li>
   <li><b>Fewer peers than you're used to.</b> The enforcing-node network is
   smaller than the pre-split network. Patience during initial sync.</li>
   <li><b>Your wallet still works.</b> A node is also the most honest wallet
@@ -149,14 +172,14 @@ bitcoinknots.org for the current slow-block period.</p>
 </ul>
 
 <div class="callout warn">
-  <b>The proof-of-work change itself</b>
-  The hard fork proposed for <b>1 September 2026</b> will require a node
-  release that understands the new proof-of-work.
-  <span class="pending">no official fork release exists yet</span> — when it is
-  published, this page gains the upgrade procedure. Until then, be deeply
-  suspicious of any binary claiming to be "the fork node": check
-  <a href="https://bitcoinknots.org">bitcoinknots.org</a> and this page rather
-  than links from social media or DMs.
+  <b>Get the fork node from the source</b>
+  The proof-of-work change activated on <b>29 August 2026</b> and requires the
+  <code>v29.4.1</code> node series. Get it from
+  <a href="https://bitcoinknots.org">bitcoinknots.org</a> or build from the
+  release tag at
+  <a href="https://github.com/bitcoinknots/bitcoin">github.com/bitcoinknots/bitcoin</a>,
+  and verify signatures — fork week is peak season for lookalike binaries
+  pushed through social media and DMs. Nothing else is "the fork node".
 </div>
 
 <h2>Checking status</h2>
@@ -164,7 +187,7 @@ bitcoinknots.org for the current slow-block period.</p>
 <pre><code># tip height, hash, and sync state
 $ bitcoin-cli getblockchaininfo
 
-# how long since the last block (slow is normal pre-fork)
+# how long since the last block (a few minutes is normal post-fork)
 $ bitcoin-cli getbestblockhash
 $ bitcoin-cli getblockheader $(bitcoin-cli getbestblockhash) | grep time
 

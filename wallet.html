@@ -102,18 +102,25 @@ you broadcast on one chain can be copied — "replayed" — onto the other, wher
 is equally valid. Spend coins on one side carelessly and you may find you spent
 them on both.</p>
 <div class="callout warn">
-  <b>Until replay protection is active</b>
-  Replay protection for the enforcing chain (an opt-in signature-hash change) is
-  <span class="pending">in development, not yet active</span>. Until it ships
-  and this page says so, the safe options are:
+  <b>Replay protection: shipped, but opt-in</b>
+  The enforcing chain's proof-of-work change (live since block 961640) came
+  with <b>opt-in</b> replay protection: a transaction whose signatures set a
+  new flag (<span class="mono">SIGHASH_UNIFIED</span>) is valid <i>only</i> on
+  the enforcing chain and cannot replay onto the majority chain. Two big
+  caveats before you relax:
   <ul style="margin-top:8px">
-    <li><b>Don't move pre-split coins</b> unless you have a concrete reason to.</li>
-    <li>If you must move them, understand that the same transaction may confirm
-    on both chains, and to the same addresses — keep destination and change
-    addresses ones <i>you</i> control on both.</li>
-    <li>Post-split coins (mined or received at block 961632 or later) exist on
-    one chain only and don't replay.</li>
+    <li>It is <b>per-transaction and opt-in</b> — a transaction that doesn't
+    set the flag replays exactly as before, and most wallet software cannot
+    set it yet. Until your wallet explicitly supports it, assume your
+    transactions are replayable.</li>
+    <li>It protects one direction. A transaction built for the
+    <b>majority chain</b> has no equivalent mechanism and may still confirm
+    on both chains.</li>
   </ul>
+  So the safe defaults stand: <b>don't move pre-split coins</b> without a
+  concrete reason; if you must, keep destination and change addresses ones
+  <i>you</i> control on both chains. Post-split coins (mined or received at
+  block 961632 or later) exist on one chain only and don't replay.
 </div>
 
 <h2>The scams you will see</h2>
@@ -127,8 +134,9 @@ these, aimed at both chains' users:</p>
   fork" binaries in DMs and forum posts. Get node software only from
   <a href="https://bitcoinknots.org">bitcoinknots.org</a> (enforcing chain) or
   bitcoincore.org (majority chain), and verify signatures.</li>
-  <li><b>Urgency manufacturing</b> — "move your coins before September 1 or lose
-  them." False. The fork changes how blocks are <i>mined</i>, not who owns what.</li>
+  <li><b>Urgency manufacturing</b> — "move your coins before the fork or lose
+  them" (and now that it happened: "…before it's too late"). False both times.
+  The fork changed how blocks are <i>mined</i>, not who owns what.</li>
   <li><b>Support impersonators</b> in Discord/Telegram/X replies. No legitimate
   developer, pool, or this site will ever DM you first, ask for your seed, or
   ask you to "validate" your wallet.</li>

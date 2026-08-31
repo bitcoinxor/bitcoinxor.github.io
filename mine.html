@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>mining — bitcoinxor</title>
-<meta name="description" content="Mining after the proof-of-work change: what's decided, what's pending, CPU and GPU mining with xorminer, and why Sia-era BLAKE2b ASICs matter again.">
+<meta name="description" content="Mining after the proof-of-work change: the final BLAKE2b parameters, what day one actually looked like, why Sia-era ASICs took the chain, and where CPUs, GPUs and pools fit.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%233E6FB0' stroke-width='3'/%3E%3Cpath d='M16 6v20M6 16h20' stroke='%233E6FB0' stroke-width='3'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -83,35 +83,47 @@ footer a{text-decoration-thickness:1px}
     <a href="/wallet">wallet safety</a>
     <a href="/mine" class="cur" aria-current="page">mining</a>
   </nav>
-  <h1>Difficulty resets. <em>So does the race.</em></h1>
-  <p class="lede">When the proof-of-work changes, every SHA256d ASIC on earth
-  becomes irrelevant on this chain — and for a window, <strong>hardware you
-  already own competes</strong>: CPUs, GPUs, and a wave of resurrected
-  BLAKE2b-era mining rigs. What's decided, what isn't, and how to be ready.</p>
+  <h1>The difficulty reset. <em>The race is on.</em></h1>
+  <p class="lede">On 29 August 2026 the enforcing chain's proof-of-work changed
+  to BLAKE2b-256, and every SHA256d ASIC on earth became irrelevant on it.
+  <strong>The hardware that took its place was waiting in closets</strong>:
+  resurrected Sia-era BLAKE2b rigs, hashing from block one. The final
+  parameters, the day-one reality, and where you actually fit.</p>
 </header>
 
 <main>
 
-<h2>Decided vs. pending</h2>
+<h2>The final parameters</h2>
 <table>
-  <tr><th>Question</th><th>Status</th></tr>
+  <tr><th>Question</th><th>Answer</th></tr>
   <tr><td>New hash algorithm</td>
-      <td><b>BLAKE2b-256</b> <span class="ok">announced</span> — selected
-      2026-08-11 by a deterministic public procedure</td></tr>
-  <tr><td>Activation date</td>
-      <td>1 September 2026 <span class="pending">proposed</span></td></tr>
-  <tr><td>Exact header &amp; hashing construction</td>
-      <td><span class="pending">pending</span> — a draft design is circulating;
-      no final code published</td></tr>
-  <tr><td>Difficulty reset &amp; retarget rules</td>
-      <td><span class="pending">pending</span></td></tr>
-  <tr><td>Official node release for the fork</td>
-      <td><span class="pending">pending</span></td></tr>
+      <td><b>BLAKE2b-256</b> <span class="ok">live</span> — selected 2026-08-11
+      by a deterministic public procedure</td></tr>
+  <tr><td>Activation</td>
+      <td>By <b>height, 961640</b> — first BLAKE2b block mined 2026-08-29
+      22:14 UTC <span class="ok">live</span></td></tr>
+  <tr><td>Header &amp; hashing construction</td>
+      <td><span class="ok">final</span> — a redesigned <b>164-byte header</b>:
+      staged commitments hide most fields from the mining hardware, BLAKE2b-256
+      runs twice, and the result is XORed with a mask derived from a secret
+      <span class="mono">xor_key</span>. Official test vectors ship in the node
+      source tree.</td></tr>
+  <tr><td>Difficulty reset</td>
+      <td><span class="ok">final</span> — the frozen SHA256d difficulty divided
+      by 2<sup>22</sup>: the chain reopened at difficulty
+      <b>≈30.4 million</b></td></tr>
+  <tr><td>Official node release</td>
+      <td><b>Bitcoin Knots v29.4.1</b> release-candidate series
+      <span class="ok">shipped</span> — see <a href="/node">run a node</a>,
+      including the config line it refuses to start without</td></tr>
 </table>
-<p>The honest consequence: <b>nobody can ship a final miner yet</b>, including
-us. Anyone selling you day-one hashrate, cloud contracts, or "fork-ready
-firmware" before the specification exists is guessing or scamming. What you
-<i>can</i> do now is have tested plumbing ready — that's what's below.</p>
+<p>The honest consequence, updated for reality: at difficulty ≈30.4&nbsp;million,
+finding a block takes on the order of <b>10<sup>17</sup> hashes</b>. Within the
+first day the network was producing blocks every few minutes — hashrate in the
+<b>hundreds of terahashes per second</b>, essentially all of it resurrected
+Sia-era ASIC hardware. <b>The much-discussed CPU/GPU window never existed</b>:
+the chain opened already at ASIC scale. Solo mining with hardware you already
+own is a lottery ticket, not a plan.</p>
 
 <h2>CPU &amp; GPU — xorminer</h2>
 <p><a href="https://xorminer.com">xorminer</a> is an open-source
@@ -119,52 +131,70 @@ firmware" before the specification exists is guessing or scamming. What you
 your own node, builds its own block templates, and treats the hash function as
 a <b>pluggable kernel</b>:</p>
 <ul>
-  <li>The <b>CPU reference kernel</b> works today — including BLAKE2b-256 — and
-  is tested end-to-end against fork-simulation networks.</li>
-  <li><b>GPU kernels</b> plug in behind a small documented subprocess protocol.
-  The CUDA kernel ships when the final construction is published — the protocol
-  and everything around it is ready now.</li>
+  <li>The <b>plumbing</b> — templates, coinbase construction, submission,
+  stale-tip handling — is tested end-to-end against fork-simulation networks,
+  and a byte-exact Python reference of the final hash pipeline passes all of
+  the official test vectors from the node source tree.</li>
+  <li>The <b>kernel update for the final 164-byte header</b> (two BLAKE2b
+  passes over staged messages, plus the xor-key mask) is
+  <span class="pending">in progress</span> — the previous kernels implement
+  the pre-release draft construction and cannot mine the live chain yet.</li>
 </ul>
 <pre><code>$ git clone https://github.com/bitcoinxor/xorminer
 $ python3 -m xorminer --help</code></pre>
-<p>Realistic expectations: immediately after a difficulty reset, ordinary CPUs
-can find blocks. As hashrate floods in, difficulty follows. A window measured
-in days, not months — the preparation is the point.</p>
+<p>Realistic expectations, with the fork behind us: at network scale a CPU or
+GPU will essentially never find a solo block. Where they still matter is
+<b>pooled mining</b> — contributing small shares to a pool — and testing,
+development, and private networks. That is the direction this tooling serves
+now.</p>
 
-<h2>The sleeping giants — Sia-era BLAKE2b ASICs</h2>
-<p>Here's the twist most day-one plans miss: <b>BLAKE2b has been ASIC-mined
-before</b>. The Sia network's 2018-era hardware — Obelisk SC1, iBeLink BM-S3,
-and boxes built on the same chips — hashes BLAKE2b at rates no GPU touches, and
-thousands of these units are sitting in closets, functionally worthless. If the
-final construction leaves them usable, they are the real day-one hashrate.</p>
+<h2>The giants woke up — Sia-era BLAKE2b ASICs</h2>
+<p>The twist this site flagged before fork day played out exactly:
+<b>BLAKE2b had been ASIC-mined before</b>. The Sia network's 2018-era
+hardware — Obelisk SC1, iBeLink BM-S3, and boxes built on the same chips —
+hashes BLAKE2b at rates no GPU touches, and the final header design courts it
+deliberately: the construction supports four <b>ASIC message profiles</b>, and
+profile&nbsp;0 presents the hardware an 80-byte message in the shape of a Sia
+mining job. Resurrected Sia fleets are the network's hashrate today.</p>
 <ul>
-  <li>If you own retired Sia hardware: <b>don't sell it yet.</b> Power it on,
-  check it POSTs, find your controller passwords.</li>
-  <li>Whether — and exactly how — each vendor's firmware can drive the new
-  chain depends on final spec details. <span class="pending">detailed per-unit
-  guides land here when the spec does.</span></li>
+  <li>If you own retired Sia hardware: it went from closet paperweight to
+  productive miner in one fork. Power it on, check it POSTs, find your
+  controller passwords.</li>
+  <li>Per-vendor compatibility is being mapped in the open — a community
+  <a href="https://github.com/paulscode/datum-blake2b-startos">tested-device
+  compatibility matrix</a> already exists. Detailed per-unit guides land
+  here as we can verify them.</li>
 </ul>
 
 <h2>Pooled mining without custody — xorpool</h2>
-<p>Solo mining after the reset is a lottery. <a href="https://xorpool.com">xorpool</a>
+<p>Solo mining at network scale is a lottery. <a href="https://xorpool.com">xorpool</a>
 is a pool coordinator designed so that the pool <b>never holds your funds</b>:
 every found block pays miners directly in its coinbase, split over a published
 share window, and miners build their own block templates. Zero pool fee.
 Python and Java implementations, open source, tested on fork-simulation
 networks.</p>
+<p>The final header design has a role written into it for pools: the secret
+<span class="mono">xor_key</span> masks the block hash so that a miner can
+verify its own shares but <b>cannot tell a share from a winning block</b> —
+only the key-holder can, which defeats block-withholding attacks against the
+pool. Adapting xorpool to the final construction is
+<span class="pending">in progress</span>; it is not yet operating as a public
+pool.</p>
 
 <div class="callout good">
-  <b>Being ready, concretely</b>
+  <b>Where to plug in, concretely</b>
   <ul style="margin-top:6px">
-    <li>Run a synced node on the enforcing chain now — it's the one
-    prerequisite everything else needs. <a href="/node">Guide.</a></li>
-    <li>Clone and run xorminer against your node today; the plumbing you test
-    now is the plumbing you'll mine with.</li>
+    <li>Run a synced <code>v29.4.1</code> node on the enforcing chain — it's
+    the one prerequisite everything else needs, and it now takes one extra
+    config line. <a href="/node">Guide.</a></li>
+    <li>Own Sia-era BLAKE2b hardware? Check the community
+    <a href="https://github.com/paulscode/datum-blake2b-startos">compatibility
+    matrix</a> and get it on the network.</li>
     <li>Have a wallet address of your own ready for coinbase payouts
     (<a href="/wallet">wallet safety</a> first).</li>
     <li>Watch this page and <a href="https://x.com/bitcoinxor">@bitcoinxor</a> —
-    when the spec lands, the final kernels, ASIC guides, and pool details land
-    here.</li>
+    the header-v2 kernels, per-unit ASIC guides, and pool details land here as
+    they're finished and verified.</li>
   </ul>
 </div>
 

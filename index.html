@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>bitcoinxor — tools for the day the hash changes</title>
-<meta name="description" content="Independent open-source tooling for the BIP-110 proof-of-work-change hard fork of Bitcoin: miner, pool, and explorer.">
+<title>bitcoinxor — tools for the chain that changed its hash</title>
+<meta name="description" content="Independent open-source tooling for the BIP-110 proof-of-work-change hard fork of Bitcoin, live since block 961640: miner, pool, and explorer.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%233E6FB0' stroke-width='3'/%3E%3Cpath d='M16 6v20M6 16h20' stroke='%233E6FB0' stroke-width='3'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -69,17 +69,25 @@ h1 em{font-style:normal;color:var(--accent)}
 .seg-version{flex:4;background:color-mix(in srgb,var(--f-version) 22%,var(--paper))}
 .seg-prev{flex:32;background:color-mix(in srgb,var(--f-prev) 22%,var(--paper))}
 .seg-merkle{flex:32;background:color-mix(in srgb,var(--f-merkle) 22%,var(--paper))}
-.seg-time{flex:4;background:var(--f-time)}
-.seg-time .val{color:#fff;font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:12px;writing-mode:vertical-rl;letter-spacing:1px}
+.seg-time{flex:4;background:color-mix(in srgb,var(--f-time) 26%,var(--paper))}
 .seg-bits{flex:4;background:color-mix(in srgb,var(--f-bits) 22%,var(--paper))}
-.seg-nonce{flex:6;background:color-mix(in srgb,var(--f-nonce) 22%,var(--paper))}
-.legend{display:flex;margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted)}
-.legend div{padding-right:6px}
-.lg-version{flex:4}.lg-prev{flex:32}.lg-merkle{flex:32}
-.lg-time{flex:4;color:var(--f-time);font-weight:600}.lg-bits{flex:4}.lg-nonce{flex:6}
+.seg-nonce{flex:4;background:color-mix(in srgb,var(--f-nonce) 26%,var(--paper))}
+.seg-n23{flex:8;background:color-mix(in srgb,var(--f-nonce) 40%,var(--paper))}
+.seg-extra{flex:16;background:color-mix(in srgb,var(--f-nonce) 14%,var(--paper))}
+.seg-toff{flex:4;background:color-mix(in srgb,var(--f-time) 44%,var(--paper))}
+.seg-ctl{flex:4;background:color-mix(in srgb,var(--f-version) 40%,var(--paper))}
+.seg-xork{flex:16;background:var(--accent)}
+.seg-xork .val{color:#fff;font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:12px;letter-spacing:1px}
+.seg-height{flex:4;background:color-mix(in srgb,var(--f-merkle) 40%,var(--paper))}
+.seg-mm{flex:32;background:color-mix(in srgb,var(--f-bits) 12%,var(--paper))}
+.legend{display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:12px;
+  font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted)}
+.legend div{display:flex;align-items:center;gap:6px;white-space:nowrap}
+.legend i{width:10px;height:10px;border:1px solid var(--ink);flex:none}
+.legend .k-xork{color:var(--accent);font-weight:600}
 .mapnote{margin-top:18px;color:var(--muted);max-width:620px}
 .mapnote b{color:var(--ink)}
-@media(max-width:640px){.legend{display:none}.seg-version,.seg-bits{flex:3}}
+@media(max-width:640px){.seg-xork .val{writing-mode:vertical-rl}}
 
 section{margin:72px 0}
 .proj{display:grid;grid-template-columns:200px 1fr;gap:8px 28px;border-top:2px solid var(--ink);padding:20px 0}
@@ -112,39 +120,57 @@ footer a{text-decoration-thickness:1px}
     <a href="/wallet">wallet safety</a>
     <a href="/mine">mining</a>
   </nav>
-  <h1>Tools for the day <em>the hash changes</em>.</h1>
+  <h1>The hash <em>changed</em>.</h1>
   <p class="lede">Independent, open-source tooling for the <strong>BIP-110
   proof-of-work-change hard fork</strong> of Bitcoin — a miner, a non-custodial
-  pool, and an explorer. Built by an enthusiast, in the open, before launch day.</p>
+  pool, and an explorer. Built by an enthusiast, in the open, since before
+  fork day. The fork is now <strong>live</strong>.</p>
   <div class="status" role="note">
-    <b>STATUS</b><span>chain split 2026-08-08 at height 961632 · algorithm
-    BLAKE2b-256 · activation proposed 2026-09-01 · full spec pending ·
+    <b>STATUS</b><span>chain split 2026-08-08 at height 961632 ·
+    BLAKE2b-256 live since height 961640 (2026-08-29 22:14 UTC) ·
+    node: Bitcoin Knots v29.4.1 (rc4) — <a href="/node">upgrade required</a> ·
     tools experimental &amp; unaudited — use entirely at your own risk</span>
   </div>
 </header>
 
-<div class="bytemap" aria-label="Block header byte layout with the time field highlighted">
-  <div class="eyebrow">where the fork lives</div>
+<div class="bytemap" aria-label="Header v2 byte layout with the xor_key field highlighted">
+  <div class="eyebrow">the new header — 164 bytes</div>
   <div class="strip">
     <div class="seg seg-version"></div>
     <div class="seg seg-prev"></div>
     <div class="seg seg-merkle"></div>
-    <div class="seg seg-time"><span class="val">nTime</span></div>
+    <div class="seg seg-time"></div>
     <div class="seg seg-bits"></div>
     <div class="seg seg-nonce"></div>
+    <div class="seg seg-n23"></div>
+    <div class="seg seg-extra"></div>
+    <div class="seg seg-toff"></div>
+    <div class="seg seg-ctl"></div>
+    <div class="seg seg-xork"><span class="val">xor_key</span></div>
+    <div class="seg seg-height"></div>
+    <div class="seg seg-mm"></div>
   </div>
   <div class="legend" aria-hidden="true">
-    <div class="lg-version">0–3<br>version</div>
-    <div class="lg-prev">4–35<br>prev block hash</div>
-    <div class="lg-merkle">36–67<br>merkle root</div>
-    <div class="lg-time">68–71<br>time</div>
-    <div class="lg-bits">72–75<br>bits</div>
-    <div class="lg-nonce">76–79<br>nonce</div>
+    <div><i class="seg-version"></i>0–3 version</div>
+    <div><i class="seg-prev"></i>4–35 prev block hash</div>
+    <div><i class="seg-merkle"></i>36–67 merkle root</div>
+    <div><i class="seg-time"></i>68–71 time</div>
+    <div><i class="seg-bits"></i>72–75 bits</div>
+    <div><i class="seg-nonce"></i>76–79 nonce</div>
+    <div><i class="seg-n23"></i>80–87 nonce2·nonce3</div>
+    <div><i class="seg-extra"></i>88–103 extranonce</div>
+    <div><i class="seg-toff"></i>104–107 time offset</div>
+    <div><i class="seg-ctl"></i>108–111 txcount·flags·clear</div>
+    <div class="k-xork"><i class="seg-xork"></i>112–127 xor_key</div>
+    <div><i class="seg-height"></i>128–131 height</div>
+    <div><i class="seg-mm"></i>132–163 merge-mining hook</div>
   </div>
-  <p class="mapnote">Four bytes of timestamp decide everything: past the scheduled
-  fork time, <b>the block hash itself is computed by a new algorithm</b> and every
-  SHA256d ASIC on earth goes quiet on this chain. These tools exist for the moment
-  after.</p>
+  <p class="mapnote">The block header grew from 80 to 164 bytes, and the block
+  hash is no longer one pass over its bytes: fields invisible to the mining
+  hardware are committed in stages, <b>BLAKE2b-256 runs twice</b>, and the result
+  is XORed with a mask derived from the secret <b>xor_key</b> — the field this
+  site is named for, which lets a pool detect a found block that the miner
+  can't withhold. Live on the Bitcoin Knots chain since height 961640.</p>
 </div>
 
 <section>
@@ -155,17 +181,17 @@ footer a{text-decoration-thickness:1px}
       <div class="tag">start here</div>
     </div>
     <p>What actually happened on 8 August 2026, the exact split-point block
-    hashes, the timeline to the proof-of-work change — <b>and what it means
-    for you</b>, in plain terms.</p>
+    hashes, the timeline through the proof-of-work change that activated on
+    29 August — <b>and what it means for you</b>, in plain terms.</p>
   </div>
   <div class="proj">
     <div>
       <h3><a href="/node">run a node</a></h3>
       <div class="tag">verify yourself</div>
     </div>
-    <p>The whole procedure: install, the two config lines that matter during
-    the split, and the one command that settles <b>"which chain am I on?"</b>
-    with your own hardware.</p>
+    <p>The whole procedure: install the fork-aware release, the config line the
+    node now <i>refuses to start without</i>, and the one command that settles
+    <b>"which chain am I on?"</b> with your own hardware.</p>
   </div>
   <div class="proj">
     <div>
@@ -181,8 +207,9 @@ footer a{text-decoration-thickness:1px}
       <h3><a href="/mine">mining</a></h3>
       <div class="tag">cpu · gpu · resurrected asics</div>
     </div>
-    <p>What's decided versus pending, mining with hardware you already own,
-    and why <b>Sia-era BLAKE2b ASICs</b> are the sleeping giants of day one.</p>
+    <p>The full final parameters, what day one actually looked like, and why
+    <b>Sia-era BLAKE2b ASICs</b> — not CPUs or GPUs — took the chain from
+    block one.</p>
   </div>
 </section>
 
@@ -195,7 +222,8 @@ footer a{text-decoration-thickness:1px}
     </div>
     <p>A <span class="mono">getblocktemplate</span> miner with <b>pluggable hash
     kernels</b> — CPU reference included, GPU kernels drop in behind a documented
-    protocol. Builds templates from your own node.
+    protocol. Builds templates from your own node. The kernel update for the
+    final 164-byte header pipeline is in progress.
     <br><a href="https://xorminer.com">xorminer.com</a> ·
     <a href="https://github.com/bitcoinxor/xorminer">source</a></p>
   </div>
