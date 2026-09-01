@@ -9,19 +9,20 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans+Condensed:wght@600&family=IBM+Plex+Sans:wght@400;600&display=swap" rel="stylesheet">
+<script>try{var t=localStorage.getItem('bxor-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 <style>
 :root{
-  --paper:#F4F6F5; --grid:#E3E8E7; --ink:#1E2833; --muted:#5A6672;
+  --paper:#FFFFFF; --grid:#E3E8E7; --card:#FFFFFF; --ink:#1E2833; --muted:#5A6672;
   --accent:#3E6FB0; --accent-soft:#DCE6F2;
   --f-time:#3E8F6C; --f-nonce:#D97A1F;
   color-scheme: light;
 }
+:root[data-theme="dark"]{--paper:#12171D; --grid:#232B33; --card:#191F27; --ink:#E6EBEF; --muted:#96A1AC; --accent:#6FA0DC; --accent-soft:#1C2B3F; --f-version:#8F98A5; --f-prev:#6FA0DC; --f-merkle:#A88FE0; --f-time:#57B389; --f-bits:#4FB0C6; --f-nonce:#E29A55; color-scheme:dark;}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--paper:#12171D; --grid:#232B33; --card:#191F27; --ink:#E6EBEF; --muted:#96A1AC; --accent:#6FA0DC; --accent-soft:#1C2B3F; --f-version:#8F98A5; --f-prev:#6FA0DC; --f-merkle:#A88FE0; --f-time:#57B389; --f-bits:#4FB0C6; --f-nonce:#E29A55; color-scheme:dark;}}
 *{margin:0;padding:0;box-sizing:border-box}
 body{
   font-family:'IBM Plex Sans',sans-serif; color:var(--ink); background:var(--paper);
-  background-image:linear-gradient(var(--grid) 1px,transparent 1px),
-                   linear-gradient(90deg,var(--grid) 1px,transparent 1px);
-  background-size:28px 28px; line-height:1.6;
+  line-height:1.6;
 }
 .sheet{max-width:780px;margin:0 auto;padding:0 24px}
 a{color:var(--ink);text-decoration-color:var(--accent);text-decoration-thickness:2px;text-underline-offset:3px}
@@ -38,6 +39,9 @@ header{padding:44px 0 0}
 .nav a:last-child{border-right:0}
 .nav a.cur{background:var(--ink);color:var(--paper)}
 .nav a:hover:not(.cur){background:var(--accent-soft);color:var(--ink)}
+.nav .theme{padding:8px 12px;border:0;border-left:2px solid var(--ink);background:none;
+  color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:13px;cursor:pointer}
+.nav .theme:hover{background:var(--accent-soft)}
 h1{font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:600;
   font-size:clamp(32px,6vw,50px);line-height:1.08;margin:36px 0 14px;letter-spacing:-0.5px}
 h1 em{font-style:normal;color:var(--accent)}
@@ -50,7 +54,7 @@ main p{margin:12px 0;max-width:660px}
 main p b{color:var(--ink)}
 main ul{margin:12px 0 12px 22px;max-width:640px}
 main li{margin:6px 0}
-code{font-family:'IBM Plex Mono',monospace;font-size:.92em;background:#fff;
+code{font-family:'IBM Plex Mono',monospace;font-size:.92em;background:var(--card);
   border:1px solid var(--grid);padding:1px 5px}
 .callout{border:2px solid var(--ink);background:var(--accent-soft);padding:18px 20px;margin:26px 0;max-width:660px}
 .callout.warn{background:color-mix(in srgb,var(--f-nonce) 16%,var(--paper))}
@@ -74,7 +78,8 @@ footer a{text-decoration-thickness:1px}
     <a href="/node">run a node</a>
     <a href="/wallet" class="cur" aria-current="page">wallet safety</a>
     <a href="/mine">mining</a>
-  </nav>
+    <a href="/explorer">explorer</a>
+  <button class="theme" id="themebtn" aria-label="Toggle dark mode">☾</button></nav>
   <h1>Your keys now control <em>two</em> balances.</h1>
   <p class="lede">Every coin that existed before block <span class="mono">961632</span>
   exists on <strong>both chains</strong>, and the same keys control both copies.
@@ -178,5 +183,17 @@ above</i> — before relying on any exchange's fork handling.</p>
 </footer>
 
 </div>
+<script>
+(function(){
+  var r=document.documentElement,k='bxor-theme',b=document.getElementById('themebtn');
+  if(!b)return;
+  function cur(){return r.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}
+  function paint(){var d=cur()==='dark';b.textContent=d?'\u2600':'\u263e';
+    b.setAttribute('aria-label',d?'Switch to light mode':'Switch to dark mode')}
+  b.addEventListener('click',function(){var n=cur()==='dark'?'light':'dark';
+    r.setAttribute('data-theme',n);try{localStorage.setItem(k,n)}catch(e){}paint()});
+  paint();
+})();
+</script>
 </body>
 </html>

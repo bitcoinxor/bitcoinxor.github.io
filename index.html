@@ -9,20 +9,21 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans+Condensed:wght@600&family=IBM+Plex+Sans:wght@400;600&display=swap" rel="stylesheet">
+<script>try{var t=localStorage.getItem('bxor-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 <style>
 :root{
-  --paper:#F4F6F5; --grid:#E3E8E7; --ink:#1E2833; --muted:#5A6672;
+  --paper:#FFFFFF; --grid:#E3E8E7; --card:#FFFFFF; --ink:#1E2833; --muted:#5A6672;
   --accent:#3E6FB0; --accent-soft:#DCE6F2;
   --f-version:#8A93A0; --f-prev:#3E6FB0; --f-merkle:#7C5CB8;
   --f-time:#3E8F6C; --f-bits:#2E8FA3; --f-nonce:#D97A1F;
   color-scheme: light;
 }
+:root[data-theme="dark"]{--paper:#12171D; --grid:#232B33; --card:#191F27; --ink:#E6EBEF; --muted:#96A1AC; --accent:#6FA0DC; --accent-soft:#1C2B3F; --f-version:#8F98A5; --f-prev:#6FA0DC; --f-merkle:#A88FE0; --f-time:#57B389; --f-bits:#4FB0C6; --f-nonce:#E29A55; color-scheme:dark;}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--paper:#12171D; --grid:#232B33; --card:#191F27; --ink:#E6EBEF; --muted:#96A1AC; --accent:#6FA0DC; --accent-soft:#1C2B3F; --f-version:#8F98A5; --f-prev:#6FA0DC; --f-merkle:#A88FE0; --f-time:#57B389; --f-bits:#4FB0C6; --f-nonce:#E29A55; color-scheme:dark;}}
 *{margin:0;padding:0;box-sizing:border-box}
 body{
   font-family:'IBM Plex Sans',sans-serif; color:var(--ink); background:var(--paper);
-  background-image:linear-gradient(var(--grid) 1px,transparent 1px),
-                   linear-gradient(90deg,var(--grid) 1px,transparent 1px);
-  background-size:28px 28px; line-height:1.55;
+  line-height:1.55;
 }
 .sheet{max-width:880px;margin:0 auto;padding:0 24px}
 a{color:var(--ink);text-decoration-color:var(--accent);text-decoration-thickness:2px;text-underline-offset:3px}
@@ -55,6 +56,9 @@ h1 em{font-style:normal;color:var(--accent)}
 .nav a:last-child{border-right:0}
 .nav a.cur{background:var(--ink);color:var(--paper)}
 .nav a:hover:not(.cur){background:var(--accent-soft);color:var(--ink)}
+.nav .theme{padding:8px 12px;border:0;border-left:2px solid var(--ink);background:none;
+  color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:13px;cursor:pointer}
+.nav .theme:hover{background:var(--accent-soft)}
 
 .eyebrow{
   font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:1.5px;
@@ -77,7 +81,7 @@ h1 em{font-style:normal;color:var(--accent)}
 .seg-toff{flex:4;background:color-mix(in srgb,var(--f-time) 44%,var(--paper))}
 .seg-ctl{flex:4;background:color-mix(in srgb,var(--f-version) 40%,var(--paper))}
 .seg-xork{flex:16;background:var(--accent)}
-.seg-xork .val{color:#fff;font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:12px;letter-spacing:1px}
+.seg-xork .val{color:var(--paper);font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:12px;letter-spacing:1px}
 .seg-height{flex:4;background:color-mix(in srgb,var(--f-merkle) 40%,var(--paper))}
 .seg-mm{flex:32;background:color-mix(in srgb,var(--f-bits) 12%,var(--paper))}
 .legend{display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:12px;
@@ -119,7 +123,8 @@ footer a{text-decoration-thickness:1px}
     <a href="/node">run a node</a>
     <a href="/wallet">wallet safety</a>
     <a href="/mine">mining</a>
-  </nav>
+    <a href="/explorer">explorer</a>
+  <button class="theme" id="themebtn" aria-label="Toggle dark mode">☾</button></nav>
   <h1>The hash <em>changed</em>.</h1>
   <p class="lede">Independent guides and open-source reference code for the
   <strong>BIP-110 proof-of-work-change hard fork</strong> of Bitcoin — plain
@@ -243,11 +248,13 @@ footer a{text-decoration-thickness:1px}
   </div>
   <div class="proj">
     <div>
-      <h3><span class="x">⊕</span> explorer</h3>
-      <div class="tag">in development</div>
+      <h3><a href="/explorer"><span class="x">⊕</span> explorer</a></h3>
+      <div class="tag">live</div>
     </div>
-    <p>A block explorer that follows the fork chain as first-class — <b>live at this
-    domain when it's ready</b>.</p>
+    <p>A live block explorer for the BLAKE2b chain — every block drawn with its
+    real fullness, fees, and miner tag, the next block assembling from the
+    mempool in real time, and <b>the full 164-byte header decoded</b> on every
+    block. <br><a href="/explorer">open the explorer</a></p>
   </div>
 </section>
 
@@ -269,5 +276,17 @@ footer a{text-decoration-thickness:1px}
 </footer>
 
 </div>
+<script>
+(function(){
+  var r=document.documentElement,k='bxor-theme',b=document.getElementById('themebtn');
+  if(!b)return;
+  function cur(){return r.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}
+  function paint(){var d=cur()==='dark';b.textContent=d?'\u2600':'\u263e';
+    b.setAttribute('aria-label',d?'Switch to light mode':'Switch to dark mode')}
+  b.addEventListener('click',function(){var n=cur()==='dark'?'light':'dark';
+    r.setAttribute('data-theme',n);try{localStorage.setItem(k,n)}catch(e){}paint()});
+  paint();
+})();
+</script>
 </body>
 </html>
