@@ -4,7 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>explorer — bitcoinxor</title>
-<meta name="description" content="Live block explorer for the BLAKE2b chain: the forge.">
+<meta name="description" content="Live block explorer for the BLAKE2b chain — blocks as they're mined, the next block assembling from the mempool, and every 164-byte header decoded.">
+<meta property="og:title" content="bitcoinxor explorer">
+<meta property="og:description" content="Live block explorer for the BLAKE2b chain — blocks as they're mined, the next block assembling from the mempool, and every 164-byte header decoded.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://bitcoinxor.org/explorer">
+<meta property="og:site_name" content="bitcoinxor">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@bitcoinxor">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%233E6FB0' stroke-width='3'/%3E%3Cpath d='M16 6v20M6 16h20' stroke='%233E6FB0' stroke-width='3'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -87,7 +94,27 @@ header{padding:40px 0 0}
 
 /* -- the forge row (full-bleed) --------------------------------- */
 .forgeblock{margin-top:44px}
-#infobtn[aria-expanded="true"]{background:var(--ink);color:var(--paper)}
+/* -- miner distribution ----------------------------------------- */
+.miners{margin-top:28px}
+.mhead{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;
+  gap:6px 18px;margin-bottom:10px}
+.mtitle{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--muted)}
+.mtitle::before{content:"// ";color:var(--accent)}
+.mtabs{display:inline-flex;border:2px solid var(--ink)}
+.mtabs button{border:0;border-right:2px solid var(--ink);background:none;color:var(--ink);
+  font-family:'IBM Plex Mono',monospace;font-size:11.5px;padding:4px 12px;cursor:pointer}
+.mtabs button:last-child{border-right:0}
+.mtabs button.on{background:var(--ink);color:var(--paper)}
+.mtabs button:hover:not(.on){background:var(--accent-soft)}
+.mbar{display:flex;height:30px;border:2px solid var(--ink);overflow:hidden}
+.mbar i{height:100%;min-width:2px}
+.mbar i+i{border-left:1px solid var(--ink)}
+.mlegend{display:flex;flex-wrap:wrap;gap:5px 20px;margin-top:9px;
+  font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--muted)}
+.mlegend div{display:flex;align-items:center;gap:6px;white-space:nowrap}
+.mlegend i{width:10px;height:10px;border:1px solid var(--ink);flex:none}
+.mlegend b{color:var(--ink);font-weight:600}
 .forgerow{width:100vw;margin-left:calc(50% - 50vw);
   display:flex;align-items:center;padding:12px 0;overflow:hidden}
 .forgerow .forge{order:3;margin-right:max(24px,calc(50vw - 496px))}
@@ -184,12 +211,12 @@ header{padding:40px 0 0}
 .txrow .txval{color:var(--muted);margin-left:auto}
 .txrow .txval+b{margin-left:24px}
 .txrow b{color:var(--ink);font-weight:400;margin-left:auto}
+.txmore{display:block;width:100%;margin-top:10px;border:2px solid var(--ink);background:none;
+  color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:12px;padding:8px;cursor:pointer}
+.txmore:hover{background:var(--accent-soft)}
 @media(max-width:720px){.hrow .fb{display:none}.detail .hash{font-size:11px}
   .dsec{padding:14px 16px}}
 
-.forgenote{margin-top:14px;font-size:13.5px;color:var(--muted);max-width:660px;
-  border:2px solid var(--ink);background:var(--accent-soft);padding:12px 16px}
-.forgenote b{color:var(--ink)}
 
 footer{border-top:2px solid var(--ink);margin-top:72px;padding:22px 0 56px;
   font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap;gap:8px 24px}
@@ -252,8 +279,6 @@ footer{border-top:2px solid var(--ink);margin-top:72px;padding:22px 0 56px;
         placeholder="search by height or 64-character block hash…"
         aria-label="Search by height or block hash">
       <span class="kbd" aria-hidden="true">/</span>
-      <button id="infobtn" aria-expanded="false" aria-controls="forgenote"
-        title="How to read this page">ⓘ</button>
       <button id="qgo" class="go">find</button>
     </div>
   </div>
@@ -274,13 +299,15 @@ footer{border-top:2px solid var(--ink);margin-top:72px;padding:22px 0 56px;
     <div class="plates" id="plates"></div>
   </div>
   <div class="detail" id="detail" aria-live="polite"></div>
-  <p class="forgenote" id="forgenote" hidden><b>How to read this page:</b> newest
-  block on the right, history running off the left edge — scroll the row to go
-  back in time. On each block, the bar is how full it is, the fee number is the
-  median rate its transactions paid, and the orange text is the miner's coinbase
-  tag. The dashed outline is the <b>next block</b>, assembling live from the
-  mempool; when it's mined it slides into the row. Click any block for its full
-  header, byte by byte, and its transactions.</p>
+
+  <div class="miners" id="miners" hidden>
+    <div class="mhead">
+      <span class="mtitle">blocks by miner</span>
+      <span class="mtabs" id="mtabs" role="tablist"></span>
+    </div>
+    <div class="mbar" id="mbar"></div>
+    <div class="mlegend" id="mlegend"></div>
+  </div>
 </div>
 
 <footer>
@@ -540,9 +567,9 @@ function select(height,el){
   $('hstrip').addEventListener('mouseleave',function(){
     document.querySelectorAll('#hrows .hrow.hl').forEach(function(r){r.classList.remove('hl')});
   });
-  api('/api/txs/block-height/'+b.height+'?page=0&pageSize=10').then(function(txs){
-    var host=$('txlist');if(selected!==height||!host)return;
-    var rows=txs.map(function(t,i){
+  var txPage=0, txShown=0, TXPAGE=25;
+  function txRowsHTML(txs){
+    return txs.map(function(t){
       var id=t._id||t.txid||'';
       var isCb=t.vin&&t.vin[0]&&t.vin[0].coinbase;
       var out=t.vout?t.vout.reduce(function(a,o){return a+(+o.value||0)},0):null;
@@ -551,11 +578,26 @@ function select(height,el){
         +(out!=null?'<span class="txval">'+out.toFixed(4)+' btc</span>':'')
         +'<b>'+(t.vsize?fmtInt(t.vsize)+' vB':'')+'</b></div>';
     }).join('');
-    host.innerHTML='<div class="txrow" style="border-top:0;color:var(--muted)">'
-      +'showing '+txs.length+' of '+fmtInt(b.ntx)+'</div>'+rows;
-  }).catch(function(){
-    var host=$('txlist');if(host)host.textContent=fmtInt(b.ntx)+' transactions — list unavailable right now';
-  });
+  }
+  function loadTxPage(){
+    api('/api/txs/block-height/'+b.height+'?page='+txPage+'&pageSize='+TXPAGE).then(function(txs){
+      var host=$('txlist');if(selected!==height||!host)return;
+      var more=$('txmore');if(more)more.remove();
+      if(txPage===0)host.innerHTML='';
+      host.insertAdjacentHTML('beforeend',txRowsHTML(txs));
+      txShown+=txs.length;txPage++;
+      if(txShown<b.ntx&&txs.length===TXPAGE){
+        host.insertAdjacentHTML('beforeend',
+          '<button class="txmore" id="txmore">show '+Math.min(TXPAGE,b.ntx-txShown)
+          +' more — '+fmtInt(b.ntx-txShown)+' remaining</button>');
+        $('txmore').addEventListener('click',loadTxPage);
+      }
+    }).catch(function(){
+      var host=$('txlist');
+      if(host&&txPage===0)host.textContent=fmtInt(b.ntx)+' transactions — list unavailable right now';
+    });
+  }
+  loadTxPage();
 }
 
 /* -- stats strip ------------------------------------------------ */
@@ -675,7 +717,7 @@ function find(){
   }
   var h=parseInt(q,10);
   if(!h){showMsg('enter a height or a 64-hex block hash');return}
-  if(h<961640){showMsg('bedrock — the BLAKE2b chain starts at block 961,640');return}
+  if(h<961640){showMsg('the BLAKE2b chain starts at block 961,640');return}
   var b=byHeight[h];
   if(b&&blocks.some(function(x){return x.height===h})){focusBlock(b);return}
   api('/api/blocks/heights-by-range?minHeight='+h+'&maxHeight='+h).then(function(list){
@@ -692,14 +734,76 @@ document.addEventListener('keydown',function(e){
   }else if(e.key==='Escape'&&selected!=null){select(selected,null)}
 });
 
-/* -- info toggle ------------------------------------------------ */
-(function(){
-  var btn=$('infobtn'),note=$('forgenote');
-  btn.addEventListener('click',function(){
-    note.hidden=!note.hidden;
-    btn.setAttribute('aria-expanded',!note.hidden);
+/* -- miner distribution ----------------------------------------- */
+var MINER_COLORS=[['--accent',60],['--f-merkle',60],['--f-time',60],['--f-bits',60],
+  ['--f-nonce',60],['--accent',30],['--f-merkle',30],['--f-time',30]];
+var TOP_MINERS=8;   // named slices shown; the rest folds into "other"
+var minerData=null, minerWindow='24h', minerColorOf={};
+function isBucket(name){return /^(other|unknown)\b/i.test(name)}
+function renderMiners(){
+  if(!minerData||!minerData.windows||!minerData.windows.length)return;
+  var wins=minerData.windows;
+  var w=wins.find(function(x){return x.label===minerWindow})||wins[wins.length-1];
+  minerWindow=w.label;
+  // stable colors: named miners ranked by total blocks across all windows
+  var totals={};
+  wins.forEach(function(win){win.slices.forEach(function(s){
+    if(!isBucket(s.miner))totals[s.miner]=(totals[s.miner]||0)+s.blocks})});
+  Object.keys(totals).sort(function(a,b){return totals[b]-totals[a]})
+    .forEach(function(m,i){minerColorOf[m]=MINER_COLORS[i%MINER_COLORS.length]});
+  function colorCSS(m){
+    if(m==='Unknown')return 'background:color-mix(in srgb,var(--f-version) 16%,var(--paper))';
+    if(isBucket(m))return 'background:color-mix(in srgb,var(--f-version) 32%,var(--paper))';
+    var c=minerColorOf[m]||MINER_COLORS[0];
+    return 'background:color-mix(in srgb,var('+c[0]+') '+c[1]+'%,var(--paper))';
+  }
+  var tabs=$('mtabs');tabs.innerHTML='';
+  wins.forEach(function(win){
+    var b=document.createElement('button');
+    b.textContent=win.label;b.className=win.label===w.label?'on':'';
+    b.setAttribute('role','tab');b.setAttribute('aria-selected',win.label===w.label);
+    b.addEventListener('click',function(){minerWindow=win.label;renderMiners()});
+    tabs.appendChild(b);
   });
-})();
+  // fold everything past the top N named slices into one "other" bucket
+  var sorted=w.slices.slice().sort(function(a,b){return b.blocks-a.blocks});
+  var named=sorted.filter(function(s){return !isBucket(s.miner)});
+  var unknown=sorted.find(function(s){return /^unknown\b/i.test(s.miner)});
+  var backendOther=sorted.filter(function(s){return /^other\b/i.test(s.miner)});
+  var shown=named.slice(0,TOP_MINERS);
+  var folded=named.slice(TOP_MINERS);
+  var otherBlocks=folded.reduce(function(a,s){return a+s.blocks},0)
+    +backendOther.reduce(function(a,s){return a+s.blocks},0);
+  var otherTags=folded.length;
+  backendOther.forEach(function(s){
+    var m=/\((\d+)/.exec(s.miner);otherTags+=m?+m[1]:1;
+  });
+  var slices=shown.slice();
+  if(otherBlocks>0)slices.push({miner:'other · '+fmtInt(otherTags)+' tags',blocks:otherBlocks,bucket:true});
+  if(unknown)slices.push(unknown);
+  slices.sort(function(a,b){return b.blocks-a.blocks});
+  var bar=$('mbar');bar.innerHTML='';
+  var leg=$('mlegend');leg.innerHTML='';
+  slices.forEach(function(s){
+    var pct=w.totalBlocks?s.blocks/w.totalBlocks*100:0;
+    var css=s.bucket?colorCSS('other'):colorCSS(s.miner);
+    var seg=document.createElement('i');
+    seg.style.cssText='flex:'+s.blocks+';'+css;
+    seg.title=s.miner+' — '+fmtInt(s.blocks)+' blocks ('+pct.toFixed(1)+'%)';
+    bar.appendChild(seg);
+    var l=document.createElement('div');
+    l.innerHTML='<i style="'+css+'"></i>'+s.miner
+      +' <b>'+fmtInt(s.blocks)+'</b> ('+Math.round(pct)+'%)';
+    leg.appendChild(l);
+  });
+  $('miners').hidden=false;
+}
+function refreshMiners(){
+  api('/api/blocks/miner-distribution').then(function(d){
+    minerData=d;renderMiners();
+  }).catch(function(){});
+}
+setInterval(refreshMiners,120000);
 
 /* -- clocks ----------------------------------------------------- */
 setInterval(function(){
@@ -723,7 +827,9 @@ setInterval(function(){if(feed==='poll'||feed==='down')refreshMempool()},30000);
 function boot(){
   renderGhosts();
   reload().then(function(){
-    setFeed('poll');startSSE();refreshMempool();
+    setFeed('poll');startSSE();refreshMempool();refreshMiners();
+    var q=new URLSearchParams(location.search).get('q');
+    if(q){$('q').value=q;find()}
   }).catch(function(){
     setFeed('down');
     setTimeout(boot,10000);
