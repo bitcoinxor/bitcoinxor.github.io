@@ -93,8 +93,14 @@ header{padding:40px 0 0}
 .forgerow .forge{order:3;margin-right:max(24px,calc(50vw - 496px))}
 .forgerow .e-sep{order:2}
 .forgerow .plates{order:1;flex-direction:row-reverse}
-.plates{display:flex;overflow-x:auto;flex:1;min-width:0;padding:20px 0 6px;scrollbar-width:none}
+.plates{display:flex;overflow-x:auto;flex:1;min-width:0;padding:20px 0 6px;scrollbar-width:none;
+  -webkit-mask-image:linear-gradient(to right,transparent 0,#000 90px);
+  mask-image:linear-gradient(to right,transparent 0,#000 90px)}
 .plates::-webkit-scrollbar{display:none}
+.plate.ghost{cursor:default;opacity:.45}
+.plate.ghost .pbg polygon{stroke-dasharray:5 4}
+.plate.boot{animation:bootin .45s both ease-out}
+@keyframes bootin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
 .forge{flex:none;width:154px;height:154px;border:2px dashed var(--ink);position:relative;
   font-family:'IBM Plex Mono',monospace;background:var(--paper)}
@@ -175,6 +181,8 @@ header{padding:40px 0 0}
 .txrow+.txrow{border-top:1px solid var(--grid)}
 .txrow .txid{color:var(--muted)}
 .txrow .cb{color:var(--f-time);font-size:10.5px;letter-spacing:1px;text-transform:uppercase}
+.txrow .txval{color:var(--muted);margin-left:auto}
+.txrow .txval+b{margin-left:24px}
 .txrow b{color:var(--ink);font-weight:400;margin-left:auto}
 @media(max-width:720px){.hrow .fb{display:none}.detail .hash{font-size:11px}
   .dsec{padding:14px 16px}}
@@ -407,8 +415,24 @@ function morePlateEl(){
 }
 function renderPlates(){
   var host=$('plates');host.innerHTML='';
-  blocks.forEach(function(b){host.appendChild(plateEl(b,false))});
+  blocks.forEach(function(b,i){
+    var el=plateEl(b,false);
+    if(!reduced&&i<12){el.classList.add('boot');el.style.animationDelay=(i*45)+'ms'}
+    host.appendChild(el);
+  });
   host.appendChild(morePlateEl());
+}
+function renderGhosts(){
+  var host=$('plates');host.innerHTML='';
+  for(var i=0;i<6;i++){
+    var el=document.createElement('div');
+    el.className='plate ghost';el.setAttribute('aria-hidden','true');
+    el.innerHTML='<svg class="pbg" viewBox="0 0 166 166" preserveAspectRatio="none">'
+      +'<polygon class="ptop" points="1,13 13,1 165,1 153,13"/>'
+      +'<polygon class="pside" points="153,13 165,1 165,153 153,165"/>'
+      +'<polygon class="pfront" points="1,13 153,13 153,165 1,165"/></svg>';
+    host.appendChild(el);
+  }
 }
 
 /* -- older history ---------------------------------------------- */
@@ -521,8 +545,10 @@ function select(height,el){
     var rows=txs.map(function(t,i){
       var id=t._id||t.txid||'';
       var isCb=t.vin&&t.vin[0]&&t.vin[0].coinbase;
+      var out=t.vout?t.vout.reduce(function(a,o){return a+(+o.value||0)},0):null;
       return '<div class="txrow"><span class="txid">'+id+'</span>'
         +(isCb?'<span class="cb">coinbase</span>':'')
+        +(out!=null?'<span class="txval">'+out.toFixed(4)+' btc</span>':'')
         +'<b>'+(t.vsize?fmtInt(t.vsize)+' vB':'')+'</b></div>';
     }).join('');
     host.innerHTML='<div class="txrow" style="border-top:0;color:var(--muted)">'
@@ -546,8 +572,9 @@ function renderStats(){
       $('s-hash').textContent=(tip.difficulty*Math.pow(2,32)/perBlock/1e12).toFixed(0)+' TH/s';
   }
   var next=(Math.floor(tip.height/RETARGET_INTERVAL)+1)*RETARGET_INTERVAL;
-  $('s-ret').textContent=fmtInt(next-tip.height);
+  $('s-ret').innerHTML=fmtInt(next-tip.height)+' <small>blocks</small>';
   $('nexth').textContent=fmtInt(tip.height+1);
+  document.title='⊕ '+fmtInt(tip.height)+' — bitcoinxor explorer';
 }
 
 /* -- feed status ------------------------------------------------ */
@@ -694,6 +721,7 @@ setInterval(function(){if(feed==='poll'||feed==='down')refreshMempool()},30000);
 
 /* -- boot ------------------------------------------------------- */
 function boot(){
+  renderGhosts();
   reload().then(function(){
     setFeed('poll');startSSE();refreshMempool();
   }).catch(function(){
