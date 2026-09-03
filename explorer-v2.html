@@ -117,9 +117,9 @@ header{padding:40px 0 0}
 @media(max-width:720px){.spine{padding-left:0}.spine::before{display:none}.gap .t{position:static;margin:0 0 0 4px}}
 
 /* one block = one entry */
-.entry{position:relative;border:1px solid var(--line);background:var(--card);border-radius:2px}
-.entry::before{content:"";position:absolute;left:-53px;top:24px;width:9px;height:9px;background:var(--paper);border:1px solid var(--line-strong)}
-.entry.pool::before{background:var(--accent)}
+.entry{position:relative;border:1px solid var(--line);border-left:4px solid var(--accent);background:var(--card);border-radius:2px}
+.entry::before{content:"";position:absolute;left:-56px;top:24px;width:9px;height:9px;background:var(--accent);border:1px solid var(--accent)}
+.forge::before{background:var(--f-time);border-color:var(--f-time)}
 .entry.enter{animation:land .5s ease-out}
 @keyframes land{0%{transform:translateY(-8px);opacity:0}100%{transform:none;opacity:1}}
 .entry.sel{border-color:var(--accent)}
@@ -128,10 +128,12 @@ header{padding:40px 0 0}
 .erow:hover{background:color-mix(in srgb,var(--accent-soft) 45%,var(--card))}
 .erow .h{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:20px;font-weight:500;letter-spacing:-.2px;white-space:nowrap}
 .erow .h .z{color:var(--muted);font-weight:400}
-.erow .tag{font-family:'Inter',system-ui,sans-serif;font-size:16px;font-weight:500;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:9px;min-width:0}
-.erow .tag i{width:10px;height:10px;border-radius:50%;flex:none}
-.erow .tag.none{color:var(--muted);font-weight:400}
+.erow .tag{font-family:'Inter',system-ui,sans-serif;font-size:15px;font-weight:500;justify-self:start;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-flex;align-items:center;gap:8px;min-width:0;max-width:100%;
+  padding:3px 12px 3px 8px;border-radius:999px;background:var(--pill,var(--accent-soft))}
+.erow .tag i{width:9px;height:9px;border-radius:50%;flex:none;background:var(--pillink,var(--accent))}
+.erow .tag .who{color:var(--muted);font-weight:400;font-size:13.5px}
+.erow .tag.none{color:var(--muted);font-weight:400;background:transparent;padding-left:0}
 .erow .ago{font-size:14px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
 .metrics{grid-column:1 / -1;display:flex;flex-wrap:wrap;gap:6px 26px;font-size:14.5px;color:var(--muted);font-variant-numeric:tabular-nums}
 .metrics span b{color:var(--ink);font-weight:500}
@@ -158,11 +160,13 @@ header{padding:40px 0 0}
 .gap .q{font-size:13.5px;color:var(--muted);padding-left:12px}
 
 /* the block being assembled */
-.forge{border:1px dashed var(--line-strong);background:transparent}
+.forge{border:1px dashed color-mix(in srgb,var(--f-time) 60%,var(--line));border-left:4px solid var(--f-time);background:color-mix(in srgb,var(--f-time) 7%,var(--card))}
+.forge .h{color:var(--f-time)}
+.forge .next{display:inline-flex;align-items:center;gap:8px;font-size:15px;color:var(--f-time);font-weight:500}
+.forge .next small{color:var(--muted);font-weight:400;font-size:14px}
 .forge::before{border-style:dashed;background:transparent}
 .forge .erow{cursor:default}
 .forge .erow:hover{background:transparent}
-.forge .h{color:var(--muted)}
 .forge .clock{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:16px;color:var(--ink);white-space:nowrap}
 .forge .bytes{opacity:.3}
 
@@ -173,6 +177,14 @@ header{padding:40px 0 0}
 .dsec+.dsec{border-top:1px solid var(--grid)}
 .dlabel{font-size:14px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
 .dlabel::before{content:"// ";color:var(--accent)}
+details.hdr summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px}
+details.hdr summary::-webkit-details-marker{display:none}
+details.hdr summary .dlabel{margin:0}
+details.hdr summary .hint{font-size:13.5px;color:var(--muted)}
+details.hdr summary .hint::before{content:"▸ ";color:var(--accent)}
+details.hdr[open] summary .hint::before{content:"▾ "}
+details.hdr .hstrip{margin-top:12px}
+.alltx{display:inline-block;margin-top:12px;font-size:14.5px}
 .hashrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .hash{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:15px;letter-spacing:.3px;white-space:nowrap;overflow-x:auto}
 .hash .z{color:var(--accent);font-weight:600}
@@ -289,7 +301,7 @@ footer a{text-decoration-thickness:1px}
 "use strict";
 var API_BASE=new URLSearchParams(location.search).get('api')||'https://u7xo.com';
 var RETARGET_INTERVAL=2016, TARGET_S=600, ROW_BATCH=24, MAX_ROW=160, FORK_HEIGHT=961640;
-var BLOCK_CAP_BYTES=300000, BLOCK_CAP_WEIGHT=785000;   // RDTS: 300 kB serialized cap
+var BLOCK_CAP_WEIGHT=785000;   // the fork's block weight cap (~300 kB of non-witness data)
 var POOL_TAG=/bitcoin xor|xorpool/i;
 var reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
 var $=function(id){return document.getElementById(id)};
@@ -321,7 +333,7 @@ function mapBlock(x){
     height:x.height, hash:x._id||x.hash||'', time:parseTime(x.time),
     ntx:x.nTx!=null?x.nTx:(x.ntx||x.txcount||0),
     size:x.size||0, weight:x.weight||0,
-    fullness:Math.min(100,Math.round(Math.max((x.size||0)/BLOCK_CAP_BYTES,(x.weight||0)/BLOCK_CAP_WEIGHT)*100)),
+    fullness:Math.min(100,Math.round((x.weight||0)/BLOCK_CAP_WEIGHT*100)),
     fees:x.totalFees!=null?+x.totalFees:null, moved:x.totalValue!=null?+x.totalValue:null,
     feeRate:null, feeP:null, hist:null, difficulty:x.difficulty!=null?+x.difficulty:null,
     tag:'', miner:'',
@@ -358,11 +370,19 @@ function cleanTag(t){return String(t||'').replace(/^\S\s+/,'').replace(/\s+\S$/,
 var PALETTE=[['--accent',60],['--f-merkle',60],['--f-time',60],['--f-bits',60],['--f-nonce',60],['--accent',30],['--f-merkle',30],['--f-time',30],['--f-bits',30],['--f-nonce',30]];
 var colorOf={};
 function tagKey(t){return (t||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim().slice(0,24)}
-function tagCSS(tag){
-  if(!tag)return 'background:transparent';
+function tagColor(tag){
   var k=tagKey(tag),c=colorOf[k];
   if(!c){var h=0;for(var i=0;i<k.length;i++)h=(h*31+k.charCodeAt(i))>>>0;c=PALETTE[h%PALETTE.length];colorOf[k]=c}
+  return c;
+}
+function tagCSS(tag){
+  if(!tag)return 'background:transparent';
+  var c=tagColor(tag);
   return 'background:color-mix(in srgb,var('+c[0]+') '+c[1]+'%,var(--paper))';
+}
+function pillCSS(tag){
+  var c=tagColor(tag);
+  return '--pill:color-mix(in srgb,var('+c[0]+') '+Math.round(c[1]/3)+'%,var(--card));--pillink:color-mix(in srgb,var('+c[0]+') '+Math.min(100,c[1]+30)+'%,var(--ink))';
 }
 
 /* -- entries ---------------------------------------------------- */
@@ -378,8 +398,8 @@ function bytesHTML(b,dim){
     return '<i style="flex:'+f[1]+';background:color-mix(in srgb,var('+f[2]+') '+pct+'%,var(--paper))"></i>'}).join('')+'</div>';
 }
 function entryInner(b){
-  var tag=b.tag?'<span class="tag" title="'+esc(b.tag)+'"><i style="'+tagCSS(b.tag)+'"></i>'+esc(b.tag)+'</span>'
-                :'<span class="tag none">no coinbase tag</span>';
+  var tag=b.tag?'<span class="tag" title="coinbase tag: '+esc(b.tag)+'" style="'+pillCSS(b.tag)+'"><i></i><span class="who">mined by</span>'+esc(b.tag)+'</span>'
+                :'<span class="tag none">miner unknown, no coinbase tag</span>';
   var fee=b.feeRate!=null?'<span class="fee"><b>'+b.feeRate.toFixed(1)+'</b> sat/vB median'+feeHistHTML(b)+'</span>'
                           :'<span class="fee"><b>…</b> sat/vB</span>';
   return '<div class="erow" role="button" tabindex="0" aria-label="block '+b.height+'">'
@@ -455,9 +475,9 @@ function forgeInner(){
   var hist='';
   if(m&&m.feeHistogram){var c=m.feeHistogram.map(function(h){return h.txCount}),mx=Math.max.apply(null,c.concat([1]));
     hist='<span class="fhist" title="mempool fee-rate histogram">'+c.map(function(n,i){return '<i class="'+(i===0?'lo':i>=6?'hi':'')+'" style="height:'+Math.max(1,Math.round(n/mx*16))+'px"></i>'}).join('')+'</span>'}
-  var vs=nb.vsize||0, fill=Math.min(100,Math.round(vs/BLOCK_CAP_BYTES*100));
+  var vs=nb.vsize||0, fill=Math.min(100,Math.round(vs*4/BLOCK_CAP_WEIGHT*100));
   return '<div class="erow"><span class="h">'+(next?fmtInt(next):'—')+'</span>'
-    +'<span class="tag none">assembling from the mempool</span>'
+    +'<span class="next">next block <small>· being assembled from the mempool right now</small></span>'
     +'<span class="clock" id="since">—</span>'
     +'<div class="metrics">'
     +'<span class="fee"><b>'+(fee!=null?fee.toFixed(1):'…')+'</b> sat/vB median'+hist+'</span>'
@@ -532,8 +552,9 @@ function select(height){
   }).join('');
   d.innerHTML='<div class="dsec"><div class="dlabel">block hash</div><div class="hashrow"><span class="hash">'+markZeros(b.hash)+'</span><button class="copybtn" data-copy>copy</button></div></div>'
     +(feeTableHTML(b)?'<div class="dsec"><div class="dlabel">fee rates in this block</div>'+feeTableHTML(b)+'</div>':'')
-    +'<div class="dsec"><div class="dlabel">the 164-byte header</div><div class="hstrip" data-strip>'+stripHTML()+'</div><div class="hrows" data-rows>'+rows+'</div></div>'
-    +'<div class="dsec"><div class="dlabel">transactions</div><div class="txtable" data-txs>loading…</div></div>';
+    +'<div class="dsec"><details class="hdr"><summary><span class="dlabel">the 164-byte header</span><span class="hint">show the decoded fields</span></summary><div class="hstrip" data-strip>'+stripHTML()+'</div><div class="hrows" data-rows>'+rows+'</div></details></div>'
+    +'<div class="dsec"><div class="dlabel">transactions</div><div class="txtable" data-txs>loading…</div>'
+    +'<a class="alltx" href="/block?h='+b.height+'">all '+fmtInt(b.ntx)+' transactions in block '+fmtInt(b.height)+' →</a></div>';
   d.classList.add('open');
   d.querySelector('[data-copy]').addEventListener('click',function(){var btn=this;
     try{navigator.clipboard.writeText(b.hash).then(function(){btn.textContent='copied';setTimeout(function(){btn.textContent='copy'},1500)})}catch(e){}});
@@ -542,7 +563,7 @@ function select(height){
     var names=SEG_ROWS[seg.getAttribute('data-f')]||[seg.getAttribute('data-f')];
     hrows.querySelectorAll('.hrow').forEach(function(r){r.classList.toggle('hl',names.indexOf(r.getAttribute('data-r'))>=0)})});
   strip.addEventListener('mouseleave',function(){hrows.querySelectorAll('.hrow.hl').forEach(function(r){r.classList.remove('hl')})});
-  var txPage=0,txShown=0,TXPAGE=25,host=d.querySelector('[data-txs]');
+  var txPage=0,txShown=0,TXPAGE=15,host=d.querySelector('[data-txs]');
   function txRowsHTML(txs){return txs.map(function(t){
     var id=t._id||t.txid||'',isCb=t.vin&&t.vin[0]&&t.vin[0].coinbase;
     var out=t.vout?t.vout.reduce(function(a,o){return a+(+o.value||0)},0):null;
@@ -555,10 +576,7 @@ function select(height){
       if(txPage===0)host.innerHTML='';
       host.insertAdjacentHTML('beforeend',txRowsHTML(txs));
       txShown+=txs.length;txPage++;
-      if(txShown<b.ntx&&txs.length===TXPAGE){
-        host.insertAdjacentHTML('beforeend','<button class="txmore">show '+Math.min(TXPAGE,b.ntx-txShown)+' more — '+fmtInt(b.ntx-txShown)+' remaining</button>');
-        host.querySelector('.txmore').addEventListener('click',loadTxPage);
-      }
+      if(txShown<b.ntx)host.insertAdjacentHTML('beforeend','<div class="txrow"><span class="txid muted">… '+fmtInt(b.ntx-txShown)+' more on the block page</span></div>');
     }).catch(function(){if(txPage===0)host.textContent=fmtInt(b.ntx)+' transactions — list unavailable right now'});
   }
   loadTxPage();
@@ -728,7 +746,7 @@ function renderMiners(){
     var l=document.createElement('div');l.innerHTML='<i style="'+css+'"></i>'+esc(s.miner)+' <b>'+fmtInt(s.blocks)+'</b> ('+Math.round(pct)+'%)';leg.appendChild(l);
   });
   $('miners').hidden=false;
-  document.querySelectorAll('.entry').forEach(function(el){var b=byHeight[+el.getAttribute('data-h')];if(b&&b.tag){var i=el.querySelector('.tag i');if(i)i.style.cssText=tagCSS(b.tag)}});
+  document.querySelectorAll('.entry').forEach(function(el){var b=byHeight[+el.getAttribute('data-h')];if(b&&b.tag){var t=el.querySelector('.tag');if(t)t.style.cssText=pillCSS(b.tag)}});
 }
 function refreshMiners(){api('/api/blocks/miner-distribution').then(function(d){minerData=d;renderMiners()}).catch(function(){})}
 setInterval(refreshMiners,120000);
