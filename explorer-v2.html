@@ -58,7 +58,7 @@ header{padding:40px 0 0}
 .stat .v{font-family:'Inter',system-ui,sans-serif;font-weight:600;font-size:28px;white-space:nowrap;
   line-height:1.15;margin-top:3px;font-variant-numeric:tabular-nums}
 .stat .v small{font-family:'Inter',system-ui,sans-serif;font-size:14.5px;color:var(--muted);font-weight:400}
-.stat .sub{font-size:13.5px;color:var(--muted);margin-top:2px;white-space:nowrap}
+.stat .sub{font-size:13.5px;color:var(--muted);margin-top:2px;line-height:1.35}
 .stat .sub b{color:var(--ink);font-weight:600}
 .stat.tipstat{flex:1.5 1 190px}
 .stat.tipstat .v{font-size:40px;color:var(--accent)}
@@ -342,7 +342,7 @@ function fetchStats(heights){
   return api('/api/blocks/stats?heights='+heights.slice(0,50).join(',')).then(function(list){
     list.forEach(function(s){
       var b=byHeight[s.height];if(!b)return;
-      b.miner=s.miner||'';b.tag=(s.coinbaseTag||s.miner||'').trim();
+      b.miner=s.miner||'';b.tag=cleanTag(s.coinbaseTag||s.miner||'');
       if(s.medianFeeRate!=null)b.feeRate=+s.medianFeeRate;
       if(s.feeRatePercentiles)b.feeP=s.feeRatePercentiles;
       if(s.histogramBins&&s.histogramCounts)b.hist={bins:s.histogramBins,counts:s.histogramCounts,min:s.minFeeRate,max:s.maxFeeRate,avg:s.avgFeeRate};
@@ -350,6 +350,9 @@ function fetchStats(heights){
     });
   }).catch(function(){});
 }
+
+/* coinbase tags arrive with the script's push-length bytes rendered as stray single characters at either end */
+function cleanTag(t){return String(t||'').replace(/^\S\s+/,'').replace(/\s+\S$/,'').replace(/[\x00-\x1f]/g,'').trim()}
 
 /* -- tag colors: stable per miner, shared with the distribution strip */
 var PALETTE=[['--accent',60],['--f-merkle',60],['--f-time',60],['--f-bits',60],['--f-nonce',60],['--accent',30],['--f-merkle',30],['--f-time',30],['--f-bits',30],['--f-nonce',30]];
@@ -571,7 +574,7 @@ function renderStats(){
   if(n>2&&tip.time&&blocks[n].time){
     var perBlock=(tip.time-blocks[n].time)/1000/n;
     if(perBlock>0&&tip.difficulty)$('s-hash').textContent=(tip.difficulty*Math.pow(2,32)/perBlock/1e12).toFixed(0)+' TH/s';
-    $('s-pace').innerHTML='last '+n+' blocks: <b>'+dur(perBlock)+'</b> apart';
+    $('s-pace').innerHTML='<b>'+dur(perBlock)+'</b> apart, last '+n;
   }
   var start=Math.floor(tip.height/RETARGET_INTERVAL)*RETARGET_INTERVAL, next=start+RETARGET_INTERVAL;
   $('s-ret').innerHTML=fmtInt(next-tip.height)+' <small>blocks</small>';
@@ -579,7 +582,7 @@ function renderStats(){
     var done=tip.height-start, elapsed=(tip.time-epochStart.time)/1000, pace=elapsed/done;
     var ratio=Math.max(.25,Math.min(4,TARGET_S/pace)), pct=(ratio-1)*100;
     var eta=(next-tip.height)*pace;
-    $('s-retsub').innerHTML='<b>'+(pct>=0?'+':'')+pct.toFixed(0)+'%</b> if this pace holds · ~'+dur(eta).replace(/ \d+s$/,'');
+    $('s-retsub').innerHTML='<b>'+(pct>=0?'+':'')+pct.toFixed(0)+'%</b> at this pace · ~'+dur(eta).replace(/ \d+s$/,'');
   }else if(!epochStart||epochStart.height!==start){
     api('/api/blocks/heights-by-range?minHeight='+start+'&maxHeight='+start).then(function(list){
       if(list.length){epochStart={height:start,time:parseTime(list[0].time)};renderStats()}}).catch(function(){});
