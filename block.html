@@ -202,7 +202,7 @@ details.hdr .hstrip{margin-top:12px}
 .txtable{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:14.5px;overflow-x:auto}
 .txrow{display:flex;align-items:baseline;gap:16px;padding:5px 2px;white-space:nowrap}
 .txrow+.txrow{border-top:1px solid var(--grid)}
-.txrow .txid{color:var(--muted)}
+.txrow .txid{color:var(--muted);text-decoration:none}.txrow a.txid:hover{color:var(--accent)}
 .txrow .cb{color:var(--f-time);font-size:13.5px;letter-spacing:.4px;text-transform:uppercase}
 .txrow .txval{color:var(--muted);margin-left:auto}
 .txrow .txval+b{margin-left:24px}
@@ -336,7 +336,7 @@ function render(x,st){
       host.insertAdjacentHTML('beforeend',txs.map(function(t,i){
         var id=t._id||t.txid||'',isCb=t.vin&&t.vin[0]&&t.vin[0].coinbase;
         var out=t.vout?t.vout.reduce(function(a,o){return a+(+o.value||0)},0):null;
-        return '<div class="txrow"><span class="n">'+(shown+i+1)+'</span><span class="txid">'+esc(id)+'</span>'+(isCb?'<span class="cb">coinbase</span>':'')
+        return '<div class="txrow"><span class="n">'+(shown+i+1)+'</span><a class="txid" href="/tx?id='+esc(id)+'">'+esc(id)+'</a>'+(isCb?'<span class="cb">coinbase</span>':'')
           +(out!=null?'<span class="txval">'+out.toFixed(4)+' btc</span>':'')+'<b>'+(t.vsize?fmtInt(t.vsize)+' vB':'')+'</b></div>'}).join(''));
       shown+=txs.length;page++;
       var pg=$('pager');pg.innerHTML='';
