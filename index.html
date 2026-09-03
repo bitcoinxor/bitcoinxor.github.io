@@ -124,6 +124,7 @@ footer a{text-decoration-thickness:1px}
     <a href="/wallet">wallet safety</a>
     <a href="/mine">mining</a>
     <a href="/explorer">explorer</a>
+    <a href="https://xorpool.com">pool</a>
   <button class="theme" id="themebtn" aria-label="Toggle dark mode">☾</button></nav>
   <h1>The hash <em>changed</em>.</h1>
   <p class="lede">Independent guides and open-source reference code for the
@@ -133,7 +134,8 @@ footer a{text-decoration-thickness:1px}
   <div class="status" role="note">
     <b>STATUS</b><span>chain split 2026-08-08 at height 961632 ·
     BLAKE2b-256 live since height 961640 (2026-08-30 06:14 UTC) ·
-    node: Bitcoin Knots v29.4.1 (rc4) — <a href="/node">upgrade required</a> ·
+    node: Bitcoin Knots v29.4.1 — <a href="/node">upgrade required</a> ·
+    pool: <a href="https://xorpool.com">xorpool.com</a> live, solo, non-custodial ·
     tools experimental &amp; unaudited — use entirely at your own risk</span>
   </div>
 </header>
@@ -235,16 +237,20 @@ footer a{text-decoration-thickness:1px}
   </div>
   <div class="proj">
     <div>
-      <h3><span class="x">⊕</span> xorpool</h3>
-      <div class="tag">reference design · no public pool</div>
+      <h3><a href="https://xorpool.com"><span class="x">⊕</span> xorpool</a></h3>
+      <div class="tag">public pool · live</div>
     </div>
-    <p>A TIDES-style pool coordinator that <b>never holds funds</b> — every block
-    pays its miners directly in the coinbase, split over a published share window.
-    Python and Java implementations, wire-compatible. Published as a design
-    reference; <b>no public pool operates under this name, and none is
-    planned</b>.
-    <br><a href="https://xorpool.com">xorpool.com</a> ·
-    <a href="https://github.com/bitcoinxor/xorminer">source</a></p>
+    <p><b>Bitcoin Xor</b> is a live, non-custodial solo pool for the BLAKE2b
+    chain at <a href="https://xorpool.com">xorpool.com</a>. There are no
+    balances and no payouts to wait for: every block pays the coinbase
+    <b>directly to the address in the miner's stratum username</b>, with a
+    1.5% output to the pool. Every worker gets its own stats page and can see
+    every share, reject and block submission the pool saw from it, with the
+    node's verdict. Built on a patched DATUM Gateway and a Knots v29.4.1 node.
+    <br><span class="mono">stratum.xorpool.com:23334</span> ·
+    user <span class="mono">bc1q…yourAddress.worker</span> ·
+    <a href="https://xorpool.com/connect">connect guide</a> ·
+    <a href="https://github.com/xorpool">source</a></p>
   </div>
   <div class="proj">
     <div>

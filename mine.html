@@ -87,6 +87,7 @@ footer a{text-decoration-thickness:1px}
     <a href="/wallet">wallet safety</a>
     <a href="/mine" class="cur" aria-current="page">mining</a>
     <a href="/explorer">explorer</a>
+    <a href="https://xorpool.com">pool</a>
   <button class="theme" id="themebtn" aria-label="Toggle dark mode">☾</button></nav>
   <h1>The difficulty reset. <em>The race is on.</em></h1>
   <p class="lede">On 30 August 2026 the enforcing chain's proof-of-work changed
@@ -178,13 +179,24 @@ only the key-holder can, which defeats block-withholding attacks against the
 pool. Expect serious pools on this chain to use it. Beyond that, the questions
 worth asking any pool are the custody ones: does it hold balances, or do blocks
 pay miners directly? Can you recompute your payout from public data?</p>
-<p>One published answer to those questions is
-<a href="https://xorpool.com">xorpool</a> — a TIDES-style coordinator designed
-so the pool <b>never holds funds</b>: every block pays miners directly in its
-coinbase, split over a published share window, with miners building their own
-templates. It's maintained as an open-source <b>design reference</b>;
-<b>no public pool operates under that name, and none is planned</b> — anything
-claiming otherwise is an impersonation.</p>
+<p>One live answer to those questions is <a href="https://xorpool.com">Bitcoin
+Xor</a>, the pool behind <b>xorpool.com</b>. It is a <b>non-custodial solo
+pool</b>: the pool never holds a balance, because every block it finds pays the
+coinbase directly to the address in the finder's stratum username, with a 1.5%
+output to the pool address. Shares exist only for statistics and difficulty.
+Each worker gets its own page with its accepted and rejected shares, its
+hashrate, and every block submission the pool made on its behalf together
+with the node's accept-or-reject verdict, so rented or remote hashrate can be
+audited from the outside.</p>
+<pre><code>URL       stratum+tcp://stratum.xorpool.com:23334
+Worker    bc1q…yourAddress.rigname
+Password  x</code></pre>
+<p>Use a fresh bech32 address per rig if you want separate stats per rig; the
+address is the payout target, the suffix after the dot is just a label. Live
+pool hashrate, blocks and per-miner pages are at
+<a href="https://xorpool.com">xorpool.com</a>; the patched DATUM Gateway and
+the stats app are published at
+<a href="https://github.com/xorpool">github.com/xorpool</a>.</p>
 
 <div class="callout good">
   <b>Where to plug in, concretely</b>
@@ -197,6 +209,8 @@ claiming otherwise is an impersonation.</p>
     matrix</a> and get it on the network.</li>
     <li>Have a wallet address of your own ready for coinbase payouts
     (<a href="/wallet">wallet safety</a> first).</li>
+    <li>Point the rig at <a href="https://xorpool.com/connect">xorpool.com</a>
+    with that address as the stratum username — blocks pay it directly.</li>
     <li>Watch this page and <a href="https://x.com/bitcoinxor">@bitcoinxor</a> —
     guides keep updating as the post-fork network settles.</li>
   </ul>
