@@ -280,6 +280,8 @@ var FIELDS=[['version',4,'--f-version'],['prev block',32,'--f-prev'],['merkle',3
   ['extranonce',16,'--f-nonce'],['time off',4,'--f-time'],['tx·flags·clr',4,'--f-version'],
   ['xor_key',16,'--accent'],['height',4,'--f-merkle'],['mm hook',32,'--f-bits']];
 var PALETTE=[['--accent',60],['--f-merkle',60],['--f-time',60],['--f-bits',60],['--f-nonce',60],['--accent',30],['--f-merkle',30],['--f-time',30],['--f-bits',30],['--f-nonce',30]];
+function localTime(ms){try{return new Intl.DateTimeFormat(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',second:'2-digit',timeZoneName:'short'}).format(new Date(ms))}catch(e){return new Date(ms).toString()}}
+function utcTime(ms){return new Date(ms).toISOString().replace('T',' ').slice(0,19)+' UTC'}
 function fmtInt(n){return (n==null?0:n).toLocaleString('en-US')}
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function parseTime(t){if(t==null)return null;if(typeof t==='number')return t*(t<1e12?1000:1);var ms=Date.parse(t);return isNaN(ms)?null:ms}
@@ -296,7 +298,7 @@ function stripHTML(){return FIELDS.map(function(f){return '<div class="bseg" dat
 function headerRows(x,time){
   var wireVersion=x.version!=null?'0x'+((x.version|0x80000000)>>>0).toString(16):null;
   return [['version','--f-version','0–3',wireVersion],['prev block','--f-prev','4–35',x.previousblockhash],['merkle','--f-merkle','36–67',x.merkleroot],
-    ['time','--f-time','68–71',time?new Date(time).toISOString().replace('T',' ').slice(0,19)+'z':null],
+    ['time','--f-time','68–71',time?localTime(time)+' ('+utcTime(time)+')':null],
     ['bits','--f-bits','72–75',x.bits],['nonce','--f-nonce','76–79',x.nonce],['nonce2','--f-nonce','80–83',x.nonce2],['nonce3','--f-nonce','84–87',x.nonce3],
     ['extranonce','--f-nonce','88–103',x.extranonce],['time offset','--f-time','104–107',x.timeOffset!=null?x.timeOffset+' s':null],
     ['tx count','--f-version','108–109',x.txcount!=null?fmtInt(x.txcount):null],['flags','--f-version','110',x.headerFlags!=null?x.headerFlags+' — asic profile '+(x.headerFlags&3):null],
@@ -313,7 +315,7 @@ function render(x,st){
   var tag=cleanTag(st&&(st.coinbaseTag||st.miner)||'');
   var fee=st&&st.medianFeeRate!=null?+st.medianFeeRate:null, p=st&&st.feeRatePercentiles||[];
   $('bh').textContent='block '+fmtInt(x.height);
-  $('bwhen').textContent=time?new Date(time).toISOString().replace('T',' ').slice(0,19)+' UTC':'';
+  $('bwhen').textContent=time?localTime(time):'';$('bwhen').title=time?utcTime(time):'';
   document.title='⊕ block '+fmtInt(x.height)+' — bitcoinxor';
   var pill=tag?'<span class="tag" style="'+pillCSS(tag)+'"><i></i><span class="who">mined by</span>'+esc(tag)+'</span>':'<span class="tag none">miner unknown, no coinbase tag</span>';
   var cells=[['lowest',st&&st.minFeeRate],['10th pct',p[0]],['median',p[2]!=null?p[2]:fee],['90th pct',p[4]],['highest',st&&st.maxFeeRate]];

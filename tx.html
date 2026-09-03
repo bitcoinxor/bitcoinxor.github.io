@@ -330,6 +330,8 @@ footer a{text-decoration-thickness:1px}
 var API_BASE=new URLSearchParams(location.search).get('api')||'https://u7xo.com';
 var SUBSIDY=3.125, MAX_PREV=40;
 var $=function(id){return document.getElementById(id)};
+function localTime(ms){try{return new Intl.DateTimeFormat(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',second:'2-digit',timeZoneName:'short'}).format(new Date(ms))}catch(e){return new Date(ms).toString()}}
+function utcTime(ms){return new Date(ms).toISOString().replace('T',' ').slice(0,19)+' UTC'}
 function fmtInt(n){return (n==null?0:n).toLocaleString('en-US')}
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function parseTime(t){if(t==null)return null;if(typeof t==='number')return t*(t<1e12?1000:1);var ms=Date.parse(t);return isNaN(ms)?null:ms}
@@ -434,7 +436,7 @@ function render(t,tip,st,prev){
   if(t.blockHeight){var bl=$('blocklink');bl.hidden=false;bl.href='/block?h='+t.blockHeight;bl.textContent='block '+fmtInt(t.blockHeight)+' →'}
   var facts=[
     ['status',confs!=null?'<span class="v ok">'+fmtInt(confs)+' <small>confirmation'+(confs===1?'':'s')+'</small></span>':'<span class="v warn">unconfirmed</span>',
-      t.blockHeight?'in block <b><a href="/block?h='+t.blockHeight+'">'+fmtInt(t.blockHeight)+'</a></b>'+(time?', '+new Date(time).toISOString().replace('T',' ').slice(0,16)+' UTC':''):''],
+      t.blockHeight?'in block <b><a href="/block?h='+t.blockHeight+'">'+fmtInt(t.blockHeight)+'</a></b>'+(time?', '+localTime(time):''):''],
     ['value',btc(totalOut)+' <small>btc</small>',fmtInt(outs.length)+' output'+(outs.length===1?'':'s')+(isCb?', paid to the miner':'')],
     ['fee',isCb?'—':btc(fee||0)+' <small>btc</small>',isCb?'coinbase pays no fee':sats(fee)+' sats'],
     ['fee rate',rate!=null?rate.toFixed(2)+' <small>sat/vB</small>':'—',st&&st.medianFeeRate!=null?'block median <b>'+(+st.medianFeeRate).toFixed(1)+'</b>':''],

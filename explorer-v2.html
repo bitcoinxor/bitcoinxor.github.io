@@ -311,6 +311,8 @@ var FIELDS=[['version',4,'--f-version'],['prev block',32,'--f-prev'],['merkle',3
   ['extranonce',16,'--f-nonce'],['time off',4,'--f-time'],['tx·flags·clr',4,'--f-version'],
   ['xor_key',16,'--accent'],['height',4,'--f-merkle'],['mm hook',32,'--f-bits']];
 
+function localTime(ms){try{return new Intl.DateTimeFormat(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',second:'2-digit',timeZoneName:'short'}).format(new Date(ms))}catch(e){return new Date(ms).toString()}}
+function utcTime(ms){return new Date(ms).toISOString().replace('T',' ').slice(0,19)+' UTC'}
 function fmtInt(n){return (n==null?0:n).toLocaleString('en-US')}
 function zpad(s,n){s=''+s;while(s.length<n)s='0'+s;return s}
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
@@ -518,7 +520,7 @@ function headerRows(b){
   var wireVersion=f.version!=null?'0x'+((f.version|0x80000000)>>>0).toString(16):null;
   return [
     ['version','--f-version','0–3',wireVersion],['prev block','--f-prev','4–35',f.prev],['merkle','--f-merkle','36–67',f.merkle],
-    ['time','--f-time','68–71',b.time?new Date(b.time).toISOString().replace('T',' ').slice(0,19)+'z':null],
+    ['time','--f-time','68–71',b.time?localTime(b.time)+' ('+utcTime(b.time)+')':null],
     ['bits','--f-bits','72–75',f.bits],['nonce','--f-nonce','76–79',f.nonce],['nonce2','--f-nonce','80–83',f.nonce2],['nonce3','--f-nonce','84–87',f.nonce3],
     ['extranonce','--f-nonce','88–103',f.extranonce],['time offset','--f-time','104–107',f.timeOffset!=null?f.timeOffset+' s':null],
     ['tx count','--f-version','108–109',f.txcount!=null?fmtInt(f.txcount):null],
